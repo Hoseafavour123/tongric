@@ -4,8 +4,10 @@
   --background: #ffffff;
   --foreground: #111827;
   --tongric-green: #15803d;
+  --tongric-green-hover: #166534;
   --tongric-green-dark: #14532d;
-  --tongric-green-light: #dcfce7;
+  --tongric-green-soft: #f0fdf4;
+  --tongric-green-tint: #dcfce7;
   --tongric-border: #e5e7eb;
 }
 
@@ -22,3 +24,18 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+*:focus-visible {
+  outline: 2px solid var(--tongric-green);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

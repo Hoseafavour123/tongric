@@ -20,3 +20,6 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
+# Local dev storage fallback (never commit uploaded media or KYC docs)
+/.tongric-local-storage
+

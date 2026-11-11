@@ -16,14 +16,14 @@
 ---
 
 ## 2. Architectural Recommendations (Pending Approval)
-- **DEC-002 (UI Primitives):** Use **Tailwind CSS + accessible headless primitives** (e.g., minimal Radix UI primitives or custom accessible React components—confirm preference during Feature 1.3) styled strictly to Tongric's white/green design system.
+*All Phase 1 UI component architecture recommendations have been reviewed and recorded below.*
 
 ---
 
 ## 3. Open Product Decisions To Resolve Sequentially (Do Not Assume)
 
 ### Before / During Phase 1
-- **Q-1.2:** File storage provider for produce photos and private KYC documents (local disk for dev + S3-compatible R2/S3/Cloudinary for prod—confirm credentials & cost preference)? *(Feature 1.4)*
+*All Phase 1 decisions are resolved (see Section 4).*
 
 ### Before / During Phase 2
 - **Q-2.1:** Exact 3 pilot interface languages for Benue State (Concept Doc 4.3 lists English, Tiv, Hausa, Yoruba, Igbo, Fulfulde, Kanuri; clarify whether Benue pilot uses English + Tiv + Hausa, or Idoma / Nigerian Pidgin)?
@@ -54,10 +54,15 @@
 
 ## 4. Approved Decisions Record
 - **DEC-001 (2026-11-11 — Architecture):** Single **Next.js App Router modular monolith** at workspace root (`src/`) using TypeScript, Tailwind CSS, `npm`, and bounded `src/modules/*` services; hybrid request pattern (Server Components read modules directly; `/api/*` JSON Route Handlers handle mutations and external testability). *Supersedes Concept Doc Sec 16 dual Express server.*
+- **DEC-002 (2026-11-11 — UI Kit):** Custom lightweight accessible React + Tailwind CSS v4 primitives + `lucide-react` icons (`Button`, `FormField`, `Input`, `Textarea`, `Select`, `Card`, `Badge`, `Alert`, `StatusStepper`, `EmptyState`, `LoadingSkeleton`, `Spinner`, native `<dialog>` `Dialog`), zero external JS UI bloat for 2G/3G low-end Android devices.
 - **DEC-003 (2026-11-11 — Roadmap Sequencing):** Approved 10-phase roadmap separating core marketplace/logistics/admin (Phases 1–8) from extended Barter & Simple Loan Demo modules (Phase 9).
 - **DEC-004 (2026-11-11 — Hosting Portability / Q-1.3):** Keep Next.js configuration host-portable for local development first; select live cloud hosting before deployment.
-- **DEC-005 (2026-11-11 — Testing Stack):** **Vitest + React Testing Library** configured (`environment: "node"` default; DOM testing added as UI components arrive).
-- **DEC-006 (2026-11-11 — PWA & Responsive Navigation):** Platform is **PWA-enabled** via native Next.js `src/app/manifest.ts` + lightweight `public/sw.js` (never caching `/api/*` or live inventory). Mobile view (`< 768px`) uses an **app-like bottom tab bar** for core sections; larger screens (`>= 768px`) use a **clean, simple top bar**.
-- **DEC-007 (2026-11-11 — Database & Schema Strategy / Q-1.1):** Use free-tier managed cloud PostgreSQL (Neon or Supabase) configured via `DATABASE_URL` in `.env`, with incremental Prisma migrations per phase (starting with `AuditLog` in Feature 1.2).
+- **DEC-005 (2026-11-11 — Testing Stack):** **Vitest + React Testing Library** configured (`environment: "node"` default; React components verified via `react-dom/server` static rendering in unit tests plus live Next.js route checks).
+- **DEC-006 (2026-11-11 — PWA & Responsive Navigation):** Platform is **PWA-enabled** via native Next.js `src/app/manifest.ts` + lightweight `public/sw.js` (never caching `/api/*` or live inventory). Mobile view (`< 768px`) uses a 5-tab bottom bar (**`Home`, `Market`, `Orders`, `Transport`, `Finance`**) with `Account` and upcoming language switcher in the top header; larger screens (`>= 768px`) use a simple single-row top bar.
+- **DEC-007 (2026-11-11 — Database & Schema Strategy / Q-1.1):** Supabase managed PostgreSQL connected via IPv4-compatible Session Pooler (`:5432`) in `.env`, with incremental Prisma migrations per phase (starting with `AuditLog` in Feature 1.2).
+- **DEC-008 (2026-11-11 — Visual Styleguide Guard):** Dev-only `/styleguide` route (`dynamic = "force-dynamic"`) returns `404` in production (`NODE_ENV === "production"`).
+- **DEC-009 (2026-11-11 — Farmer / Buyer Workspace Mode Switch):** Header `Farmer | Buyer` toggle enables dual-capable users (or farmers browsing to buy) to switch workspace views cleanly, while Phase 3 server RBAC will strictly enforce profile/verification rules per action.
+- **DEC-010 (2026-11-11 — File Storage / Q-1.2):** Use **Cloudinary** (`CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`) via `StorageProvider` abstraction with `.tongric-local-storage/` fallback for offline tests/unconfigured local dev. Public produce photos use `type: "upload"` (`<= 2MB`, JPEG/PNG/WebP); private KYC/loan documents use `type: "private"` (`<= 5MB`, JPEG/PNG/WebP/PDF) with `<= 120s` signed download URLs and magic-byte validation. *(Note: Cloudinary free accounts require enabling PDF delivery in dashboard security settings if PDF uploads are used.)*
+- **DEC-011 (2026-11-11 — Connectivity Resilience):** Use `NetworkStatusBanner`, `/offline` PWA fallback route in `public/sw.js` (zero `/api/*` caching), and `resilientFetch` (auto-retrying safe `GET` requests while injecting `Idempotency-Key` on mutations without automatic duplicate submission).
 
 

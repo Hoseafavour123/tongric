@@ -1,9 +1,18 @@
-const CACHE_NAME = "tongric-static-v1";
-const STATIC_ASSETS = ["/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
+const CACHE_NAME = "tongric-static-v2";
+const OFFLINE_URL = "/offline";
+const STATIC_ASSETS = [
+  OFFLINE_URL,
+  "/manifest.webmanifest",
+  "/icons/icon-192.png",
+  "/icons/icon-512.png",
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS)).catch(() => undefined),
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => cache.addAll(STATIC_ASSETS))
+      .catch(() => undefined),
   );
   self.skipWaiting();
 });
@@ -13,7 +22,11 @@ self.addEventListener("activate", (event) => {
     caches
       .keys()
       .then((keys) =>
-        Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))),
+        Promise.all(
+          keys
+            .filter((key) => key !== CACHE_NAME)
+            .map((key) => caches.delete(key)),
+        ),
       ),
   );
   self.clients.claim();
@@ -31,7 +44,27 @@ self.addEventListener("fetch", (event) => {
   }
 
   // Never cache API endpoints or dynamic application data so inventory and auth remain accurate.
-  if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/_next/data/")) {
+  if (
+    url.pathname.startsWith("/api/") ||
+    url.pathname.startsWith("/_next/data/")
+  ) {
+    return;
+  }
+
+  // Serve cached /offline shell when page navigation fails due to lost signal.
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request).catch(async () => {
+        const cachedOffline = await caches.match(OFFLINE_URL);
+        return (
+          cachedOffline ||
+          new Response("You are offline.", {
+            status: 503,
+            headers: { "Content-Type": "text/plain; charset=utf-8" },
+          })
+        );
+      }),
+    );
     return;
   }
 
@@ -41,4 +74,3 @@ self.addEventListener("fetch", (event) => {
     );
   }
 });
-

@@ -1,17 +1,15 @@
 /**
  * Navigation contract for Tongric's responsive shell:
- * - Mobile (< 768px): Bottom tab bar with up to 5 core app sections.
- * - Desktop (>= 768px): Simple top navigation bar.
- *
- * Feature 1.3 implements the full AppShell using this contract as domain routes
- * come online in Phases 3–9.
+ * - Mobile (< 768px): Bottom tab bar with 5 core app sections
+ *   (Home, Market, Orders, Transport, Finance).
+ * - Desktop (>= 768px): Simple single-row top navigation bar + header Account slot.
  */
 export type CoreSectionId =
   | "home"
   | "marketplace"
   | "orders"
   | "logistics"
-  | "account";
+  | "finance";
 
 export interface CoreNavItem {
   id: CoreSectionId;
@@ -51,11 +49,18 @@ export const CORE_NAV_ITEMS: readonly CoreNavItem[] = [
     enabledInCurrentPhase: false,
   },
   {
-    id: "account",
-    labelKey: "nav.account",
-    defaultLabel: "Account",
-    href: "/account",
+    id: "finance",
+    labelKey: "nav.finance",
+    defaultLabel: "Finance",
+    href: "/finance",
     enabledInCurrentPhase: false,
   },
 ] as const;
 
+export const ACCOUNT_NAV_ITEM = {
+  id: "account",
+  labelKey: "nav.account",
+  defaultLabel: "Account",
+  href: "/account",
+  enabledInCurrentPhase: false,
+} as const;

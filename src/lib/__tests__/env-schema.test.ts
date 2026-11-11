@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseEnv } from "../env-schema";
+import { isCloudinaryConfigured, parseEnv } from "../env-schema";
 
 describe("parseEnv", () => {
   it("applies safe defaults when optional keys are omitted", () => {
@@ -50,5 +50,23 @@ describe("parseEnv", () => {
         NEXT_PUBLIC_APP_NAME: "   ",
       }),
     ).toThrow(/NEXT_PUBLIC_APP_NAME/);
+  });
+
+  it("validates Cloudinary credentials as an all-or-nothing group", () => {
+    const empty = parseEnv({});
+    expect(isCloudinaryConfigured(empty)).toBe(false);
+
+    const complete = parseEnv({
+      CLOUDINARY_CLOUD_NAME: "tongric-demo",
+      CLOUDINARY_API_KEY: "123456",
+      CLOUDINARY_API_SECRET: "super-secret",
+    });
+    expect(isCloudinaryConfigured(complete)).toBe(true);
+
+    expect(() =>
+      parseEnv({
+        CLOUDINARY_CLOUD_NAME: "tongric-demo",
+      }),
+    ).toThrow(/CLOUDINARY/);
   });
 });
