@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #111827;
+  --tongric-green: #15803d;
+  --tongric-green-dark: #14532d;
+  --tongric-green-light: #dcfce7;
+  --tongric-border: #e5e7eb;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
