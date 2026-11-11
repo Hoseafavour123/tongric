@@ -5,6 +5,7 @@ export type ErrorCode =
   | "NOT_FOUND"
   | "CONFLICT"
   | "RATE_LIMITED"
+  | "SERVICE_UNAVAILABLE"
   | "INTERNAL_ERROR";
 
 /**
@@ -68,6 +69,13 @@ export class RateLimitError extends AppError {
   constructor(message = "Too many requests. Please wait and try again.") {
     super("RATE_LIMITED", message, 429);
     this.name = "RateLimitError";
+  }
+}
+
+export class ServiceUnavailableError extends AppError {
+  constructor(message = "Service is temporarily unavailable") {
+    super("SERVICE_UNAVAILABLE", message, 503);
+    this.name = "ServiceUnavailableError";
   }
 }
 

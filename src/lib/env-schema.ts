@@ -1,5 +1,22 @@
 import { z } from "zod";
 
+const postgresUrlSchema = z
+  .string()
+  .trim()
+  .refine(
+    (value) =>
+      value.startsWith("postgresql://") || value.startsWith("postgres://"),
+    "DATABASE_URL must start with postgresql:// or postgres://",
+  )
+  .refine((value) => {
+    try {
+      const parsed = new URL(value);
+      return Boolean(parsed.hostname);
+    } catch {
+      return false;
+    }
+  }, "DATABASE_URL must be a valid PostgreSQL connection URL");
+
 export const envSchema = z.object({
   NODE_ENV: z
     .enum(["development", "test", "production"])
@@ -13,6 +30,10 @@ export const envSchema = z.object({
     .trim()
     .min(1, "NEXT_PUBLIC_APP_NAME cannot be empty")
     .default("Tongric"),
+  DATABASE_URL: z.preprocess(
+    (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+    postgresUrlSchema.optional(),
+  ),
 });
 
 export type AppEnv = z.infer<typeof envSchema>;
@@ -28,6 +49,7 @@ export function parseEnv(
     NODE_ENV: source.NODE_ENV,
     APP_URL: source.APP_URL,
     NEXT_PUBLIC_APP_NAME: source.NEXT_PUBLIC_APP_NAME,
+    DATABASE_URL: source.DATABASE_URL,
   });
 
   if (!result.success) {
@@ -39,4 +61,3 @@ export function parseEnv(
 
   return result.data;
 }
-

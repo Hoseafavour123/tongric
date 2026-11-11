@@ -7,17 +7,33 @@ describe("parseEnv", () => {
     expect(parsed.NODE_ENV).toBe("development");
     expect(parsed.APP_URL).toBe("http://localhost:3000");
     expect(parsed.NEXT_PUBLIC_APP_NAME).toBe("Tongric");
+    expect(parsed.DATABASE_URL).toBeUndefined();
   });
 
-  it("accepts valid custom values", () => {
+  it("accepts valid custom values including PostgreSQL URLs", () => {
     const parsed = parseEnv({
       NODE_ENV: "production",
       APP_URL: "https://tongric.ng",
       NEXT_PUBLIC_APP_NAME: "Tongric Pilot",
+      DATABASE_URL: "postgresql://user:pass@ep-cool-host.neon.tech/tongric?sslmode=require",
     });
     expect(parsed.NODE_ENV).toBe("production");
     expect(parsed.APP_URL).toBe("https://tongric.ng");
     expect(parsed.NEXT_PUBLIC_APP_NAME).toBe("Tongric Pilot");
+    expect(parsed.DATABASE_URL).toContain("postgresql://");
+  });
+
+  it("treats blank DATABASE_URL as undefined", () => {
+    const parsed = parseEnv({ DATABASE_URL: "   " });
+    expect(parsed.DATABASE_URL).toBeUndefined();
+  });
+
+  it("rejects non-PostgreSQL DATABASE_URL schemes", () => {
+    expect(() =>
+      parseEnv({
+        DATABASE_URL: "mysql://user:pass@localhost:3306/tongric",
+      }),
+    ).toThrow(/DATABASE_URL/);
   });
 
   it("throws a clear error when APP_URL is malformed", () => {
@@ -36,4 +52,3 @@ describe("parseEnv", () => {
     ).toThrow(/NEXT_PUBLIC_APP_NAME/);
   });
 });
-
