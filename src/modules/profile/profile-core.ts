@@ -242,11 +242,12 @@ export async function listPendingVerificationsWithRepo(
 
   const items = await repo.listVerificationDocuments(filters);
 
-  // Generate short-lived signed access URLs (15 mins TTL) for admin review
+  // Generate short-lived signed access URLs for admin review
   const itemsWithPreviews = await Promise.all(
     items.map(async (item) => {
+      let previewUrl = `/api/admin/verifications/${item.id}/document`;
       try {
-        const previewUrl = await storageProvider.getAccessUrl(
+        const url = await storageProvider.getAccessUrl(
           item.fileStoragePath,
           {
             visibility: "private",
@@ -254,10 +255,13 @@ export async function listPendingVerificationsWithRepo(
             expiresInSeconds: 900,
           },
         );
-        return { ...item, previewUrl };
+        if (url.startsWith("http://") || url.startsWith("https://")) {
+          previewUrl = url;
+        }
       } catch {
-        return item;
+        // Fall back to server document route
       }
+      return { ...item, previewUrl };
     }),
   );
 

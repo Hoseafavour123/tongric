@@ -1,0 +1,185 @@
+<svg width="390" height="844" viewBox="0 0 390 844" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-opacity="0.12" />
+    </filter>
+    <clipPath id="screenClip">
+      <rect x="0" y="0" width="390" height="844" rx="42" />
+    </clipPath>
+  </defs>
+
+  <!-- Phone Shell -->
+  <rect x="0" y="0" width="390" height="844" rx="42" fill="#ffffff" filter="url(#shadow)" stroke="#cbd5e1" stroke-width="2.5"/>
+
+  <g clip-path="url(#screenClip)">
+    <!-- Status Bar -->
+    <rect x="0" y="0" width="390" height="44" fill="#ffffff"/>
+    <text x="34" y="29" font-size="14" font-weight="600" fill="#0f172a">09:41</text>
+    <rect x="135" y="10" width="120" height="24" rx="12" fill="#0f172a"/>
+    <circle cx="236" cy="22" r="5" fill="#1e293b"/>
+    
+    <!-- Status Icons -->
+    <g transform="translate(320, 18)" fill="#0f172a">
+      <rect x="16" y="2" width="22" height="11" rx="3" fill="none" stroke="#0f172a" stroke-width="1.5"/>
+      <rect x="18" y="4" width="14" height="7" rx="1.5" fill="#0f172a"/>
+      <path d="M39 5.5v4" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M9 11a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+      <path d="M4.5 7.5a5 5 0 0 1 6 0" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <rect x="-1" y="9" width="2" height="4" rx="0.5"/>
+      <rect x="2" y="6" width="2" height="7" rx="0.5"/>
+      <rect x="5" y="3" width="2" height="10" rx="0.5"/>
+    </g>
+
+    <!-- Top Header Navigation -->
+    <rect x="0" y="44" width="390" height="52" fill="#ffffff" stroke="#f1f5f9" stroke-width="1"/>
+    <g transform="translate(16, 55)">
+      <rect x="0" y="0" width="28" height="28" rx="6" fill="#15803d"/>
+      <text x="14" y="20" font-size="15" font-weight="800" fill="#ffffff" text-anchor="middle">T</text>
+      <text x="36" y="20" font-size="16" font-weight="700" fill="#0f172a">Tongric</text>
+    </g>
+
+    <g transform="translate(202, 55)">
+      <!-- Mode Pill -->
+      <rect x="0" y="1" width="74" height="26" rx="13" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1"/>
+      <rect x="2" y="3" width="35" height="22" rx="11" fill="#15803d"/>
+      <text x="19" y="18" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Farm</text>
+      <text x="54" y="18" font-size="10" font-weight="700" fill="#64748b" text-anchor="middle">Buy</text>
+
+      <!-- Language -->
+      <rect x="80" y="1" width="48" height="26" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="104" y="18" font-size="10" font-weight="600" fill="#334155" text-anchor="middle">🌐 EN</text>
+
+      <!-- Account -->
+      <rect x="134" y="1" width="28" height="26" rx="6" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1"/>
+      <text x="148" y="18" font-size="11" font-weight="700" fill="#065f46" text-anchor="middle">T</text>
+    </g>
+
+    <!-- Body Content Area -->
+    <g transform="translate(0, 96)">
+      
+  <!-- Welcome Card -->
+  <g transform="translate(16, 16)">
+    <rect x="0" y="0" width="358" height="186" rx="12" fill="#ffffff" stroke="#86efac" stroke-width="1.5"/>
+    <rect x="14" y="14" width="76" height="22" rx="6" fill="#dcfce7"/>
+    <text x="52" y="29" font-size="11" font-weight="700" fill="#15803d" text-anchor="middle">Farmer View</text>
+
+    <rect x="96" y="14" width="94" height="22" rx="6" fill="#f1f5f9"/>
+    <text x="143" y="29" font-size="11" font-weight="600" fill="#475569" text-anchor="middle">Benue Pilot: Active</text>
+
+    <text x="14" y="62" font-size="18" font-weight="800" fill="#0f172a">Welcome back, Tersoo!</text>
+    <text x="14" y="82" font-size="12" fill="#64748b">Direct produce marketing &amp; logistics for Benue farmers.</text>
+
+    <!-- Primary Action Button -->
+    <rect x="14" y="100" width="190" height="42" rx="8" fill="#15803d"/>
+    <text x="109" y="126" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">+ Sell Produce / List</text>
+
+    <rect x="212" y="100" width="132" height="42" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="278" y="126" font-size="13" font-weight="600" fill="#334155" text-anchor="middle">Marketplace</text>
+
+    <text x="14" y="166" font-size="11" font-weight="600" fill="#64748b">Quick Links: My Farm Profile • Orders &amp; Offers • Verify ID</text>
+  </g>
+
+  <!-- Priority Crops Chips -->
+  <g transform="translate(16, 218)">
+    <rect x="0" y="0" width="358" height="110" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="14" y="24" font-size="13" font-weight="700" fill="#0f172a">Benue Agricultural Priority Produce</text>
+    <text x="14" y="40" font-size="11" fill="#64748b">Tap any harvest category to browse active lots</text>
+
+    <!-- Chips -->
+    <g transform="translate(14, 52)">
+      <rect x="0" y="0" width="60" height="34" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+      <text x="30" y="21" font-size="11" font-weight="700" fill="#15803d" text-anchor="middle">🥔 Yam</text>
+
+      <rect x="68" y="0" width="112" height="34" rx="8" fill="#fef2f2" stroke="#fca5a5" stroke-width="1"/>
+      <text x="124" y="21" font-size="11" font-weight="700" fill="#b91c1c" text-anchor="middle">🍅 Tomatoes (24h)</text>
+
+      <rect x="188" y="0" width="76" height="34" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="226" y="21" font-size="11" font-weight="600" fill="#334155" text-anchor="middle">🌾 Rice</text>
+
+      <rect x="272" y="0" width="72" height="34" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="308" y="21" font-size="11" font-weight="600" fill="#334155" text-anchor="middle">Cassava</text>
+    </g>
+  </g>
+
+  <!-- Stepper Journey -->
+  <g transform="translate(16, 342)">
+    <rect x="0" y="0" width="358" height="160" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="14" y="24" font-size="13" font-weight="700" fill="#0f172a">Commercial Selling Flow</text>
+
+    <!-- Step 1 -->
+    <circle cx="26" cy="56" r="12" fill="#15803d"/>
+    <text x="26" y="60" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">✓</text>
+    <text x="48" y="54" font-size="12" font-weight="700" fill="#0f172a">1. List Your Produce</text>
+    <text x="48" y="68" font-size="11" fill="#64748b">Photos, unit price, Benue LGA location, quality grade</text>
+
+    <!-- Step 2 -->
+    <circle cx="26" cy="98" r="12" fill="#dcfce7" stroke="#15803d" stroke-width="2"/>
+    <text x="26" y="102" font-size="11" font-weight="700" fill="#15803d" text-anchor="middle">2</text>
+    <text x="48" y="96" font-size="12" font-weight="700" fill="#0f172a">2. Review Offers &amp; Counter</text>
+    <text x="48" y="110" font-size="11" fill="#64748b">Negotiate prices &amp; delivery up to 3 structured rounds</text>
+
+    <!-- Step 3 -->
+    <circle cx="26" cy="138" r="12" fill="#f1f5f9"/>
+    <text x="26" y="142" font-size="11" font-weight="700" fill="#94a3b8" text-anchor="middle">3</text>
+    <text x="48" y="136" font-size="12" font-weight="600" fill="#64748b">3. Deliver &amp; Direct Settle</text>
+    <text x="48" y="150" font-size="11" fill="#94a3b8">Farm-gate collection, direct settlement (Section 19)</text>
+  </g>
+
+  <!-- Pilot Trust Cards -->
+  <g transform="translate(16, 516)">
+    <rect x="0" y="0" width="172" height="74" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="12" y="24" font-size="12" font-weight="700" fill="#15803d">📍 23 Benue LGAs</text>
+    <text x="12" y="42" font-size="10" fill="#64748b">Makurdi, Gboko, Otukpo, Katsina-Ala, Vandeikya</text>
+
+    <rect x="186" y="0" width="172" height="74" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="198" y="24" font-size="12" font-weight="700" fill="#15803d">⚖️ Grade A/B/C</text>
+    <text x="198" y="42" font-size="10" fill="#64748b">Standardized commercial agricultural sorting</text>
+  </g>
+
+  <!-- Section 19 Policy -->
+  <g transform="translate(16, 602)">
+    <rect x="0" y="0" width="358" height="60" rx="10" fill="#fefce8" stroke="#fef08a" stroke-width="1"/>
+    <text x="12" y="22" font-size="11" font-weight="700" fill="#854d0e">🛡️ Regulatory Compliance (Section 19)</text>
+    <text x="12" y="40" font-size="10" fill="#713f12">Zero platform custody of funds. Direct buyer-farmer settlement.</text>
+  </g>
+
+    </g>
+
+    <!-- Bottom Navigation Bar -->
+    <g transform="translate(0, 770)">
+      <rect x="0" y="0" width="390" height="74" fill="#ffffff" stroke="#f1f5f9" stroke-width="1"/>
+      
+          <g transform="translate(39, 14)">
+            <line x1="-16" y1="-14" x2="16" y2="-14" stroke="#15803d" stroke-width="3" stroke-linecap="round"/>
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="none" stroke="#15803d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" transform="translate(-10, -2) scale(0.9)"/>
+            <text x="0" y="24" font-size="10" font-weight="700" fill="#15803d" text-anchor="middle">Home</text>
+          </g>
+        
+          <g transform="translate(117, 14)">
+            
+            <path d="M3 3h18v4H3z M3 7l2 14h14l2-14" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" transform="translate(-10, -2) scale(0.9)"/>
+            <text x="0" y="24" font-size="10" font-weight="500" fill="#64748b" text-anchor="middle">Market</text>
+          </g>
+        
+          <g transform="translate(195, 14)">
+            
+            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" transform="translate(-10, -2) scale(0.9)"/>
+            <text x="0" y="24" font-size="10" font-weight="500" fill="#64748b" text-anchor="middle">Orders</text>
+          </g>
+        
+          <g transform="translate(273, 14)">
+            
+            <path d="M1 3h15v13H1z M16 8h4l3 3v5h-7" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" transform="translate(-10, -2) scale(0.9)"/>
+            <text x="0" y="24" font-size="10" font-weight="500" fill="#64748b" text-anchor="middle">Transport</text>
+          </g>
+        
+          <g transform="translate(351, 14)">
+            
+            <path d="M3 21h18M3 10h18M5 10v11M19 10v11M12 2l10 5H2z" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" transform="translate(-10, -2) scale(0.9)"/>
+            <text x="0" y="24" font-size="10" font-weight="500" fill="#64748b" text-anchor="middle">Finance</text>
+          </g>
+        
+      <rect x="125" y="60" width="140" height="4" rx="2" fill="#0f172a"/>
+    </g>
+  </g>
+</svg>

@@ -98,6 +98,36 @@ enum AvailabilityStatus {
   UPCOMING_HARVEST
 }
 
+/// Status lifecycle of a commercial purchase offer.
+enum OfferStatus {
+  PENDING
+  COUNTERED
+  ACCEPTED
+  DECLINED
+  EXPIRED
+  WITHDRAWN
+}
+
+/// Delivery and collection responsibility for produce offers.
+enum FulfillmentMode {
+  BUYER_ARRANGES_PICKUP
+  FARMER_ARRANGES_DELIVERY
+  TONGRIC_LOGISTICS_REQUEST
+}
+
+/// Lifecycle state of a confirmed commercial order.
+enum OrderStatus {
+  CONFIRMED
+  TRANSPORT_REQUESTED
+  TRANSPORT_ASSIGNED
+  COLLECTED
+  IN_TRANSIT
+  DELIVERED
+  COMPLETED
+  CANCELLED
+  DISPUTED
+}
+
 /// Registered platform identity anchored to canonical Nigerian E.164 phone number.
 model User {
   id                    String        @id @default(cuid())
@@ -123,6 +153,13 @@ model User {
   transportProfile TransportProfile?
   verificationDocs VerificationDocument[]
   listings         ProduceListing[]
+  buyerOffers      CommercialOffer[]      @relation("BuyerOffers")
+  farmerOffers     CommercialOffer[]      @relation("FarmerOffers")
+  offerActions     CommercialOffer[]      @relation("OfferActions")
+  offerMessages    OfferMessage[]
+  farmerOrders     Order[]                @relation("FarmerOrders")
+  buyerOrders      Order[]                @relation("BuyerOrders")
+  orderStatusEvents OrderStatusEvent[]
 
   @@index([role, accountStatus])
   @@index([preferredLanguageCode])
@@ -297,8 +334,10 @@ model ProduceListing {
   createdAt          DateTime           @default(now()) @map("created_at")
   updatedAt          DateTime           @updatedAt @map("updated_at")
 
-  farmer User           @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  farmer User              @relation(fields: [farmerId], references: [id], onDelete: Cascade)
   photos ListingPhoto[]
+  offers CommercialOffer[]
+  orders Order[]
 
   @@index([farmerId])
   @@index([cropCode])
@@ -323,6 +362,115 @@ model ListingPhoto {
 
   @@index([listingId])
   @@map("listing_photos")
+}
+
+/// Commercial purchase offer initiated on a produce listing.
+model CommercialOffer {
+  id                     String          @id @default(cuid())
+  offerCode              String          @unique @map("offer_code")
+  listingId              String          @map("listing_id")
+  buyerId                String          @map("buyer_id")
+  farmerId               String          @map("farmer_id")
+  status                 OfferStatus     @default(PENDING)
+  quantity               Int
+  unitCode               String          @map("unit_code")
+  unitPrice              Decimal         @map("unit_price") @db.Decimal(12, 2)
+  currency               String          @default("NGN")
+  totalAmount            Decimal         @map("total_amount") @db.Decimal(14, 2)
+  fulfillmentMode        FulfillmentMode @map("fulfillment_mode")
+  destinationLocation    String?         @map("destination_location")
+  proposedCollectionDate DateTime?       @map("proposed_collection_date")
+  expiresAt              DateTime        @map("expires_at")
+  counterRoundCount      Int             @default(0) @map("counter_round_count")
+  lastActionById         String          @map("last_action_by_id")
+  createdAt              DateTime        @default(now()) @map("created_at")
+  updatedAt              DateTime        @updatedAt @map("updated_at")
+
+  listing      ProduceListing @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  buyer        User           @relation("BuyerOffers", fields: [buyerId], references: [id], onDelete: Restrict)
+  farmer       User           @relation("FarmerOffers", fields: [farmerId], references: [id], onDelete: Restrict)
+  lastActionBy User           @relation("OfferActions", fields: [lastActionById], references: [id], onDelete: Restrict)
+  messages     OfferMessage[]
+  order        Order?
+
+  @@index([listingId, status])
+  @@index([buyerId, status])
+  @@index([farmerId, status])
+  @@index([expiresAt])
+  @@map("commercial_offers")
+}
+
+/// Immutable negotiation message and revision in an offer thread.
+model OfferMessage {
+  id                String   @id @default(cuid())
+  offerId           String   @map("offer_id")
+  senderId          String   @map("sender_id")
+  action            String   // INITIATE, COUNTER, ACCEPT, DECLINE, WITHDRAW
+  proposedQuantity  Int?     @map("proposed_quantity")
+  proposedUnitPrice Decimal? @map("proposed_unit_price") @db.Decimal(12, 2)
+  note              String?  @db.Text
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  offer  CommercialOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  sender User            @relation(fields: [senderId], references: [id], onDelete: Restrict)
+
+  @@index([offerId, createdAt])
+  @@map("offer_messages")
+}
+
+/// Binding commercial order resulting from an accepted purchase offer.
+model Order {
+  id                     String          @id @default(cuid())
+  orderCode              String          @unique @map("order_code")
+  offerId                String          @unique @map("offer_id")
+  listingId              String          @map("listing_id")
+  farmerId               String          @map("farmer_id")
+  buyerId                String          @map("buyer_id")
+  cropCode               String          @map("crop_code")
+  quantity               Int
+  unitCode               String          @map("unit_code")
+  estimatedWeightKg      Float           @map("estimated_weight_kg")
+  unitPrice              Decimal         @map("unit_price") @db.Decimal(12, 2)
+  currency               String          @default("NGN")
+  totalAmount            Decimal         @map("total_amount") @db.Decimal(14, 2)
+  fulfillmentMode        FulfillmentMode @map("fulfillment_mode")
+  destinationLocation    String?         @map("destination_location")
+  proposedCollectionDate DateTime?       @map("proposed_collection_date")
+  status                 OrderStatus     @default(CONFIRMED)
+  paymentArrangementNote String?         @map("payment_arrangement_note")
+  cancellationReason     String?         @map("cancellation_reason")
+  createdAt              DateTime        @default(now()) @map("created_at")
+  updatedAt              DateTime        @updatedAt @map("updated_at")
+
+  offer        CommercialOffer    @relation(fields: [offerId], references: [id], onDelete: Restrict)
+  listing      ProduceListing     @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  farmer       User               @relation("FarmerOrders", fields: [farmerId], references: [id], onDelete: Restrict)
+  buyer        User               @relation("BuyerOrders", fields: [buyerId], references: [id], onDelete: Restrict)
+  statusEvents OrderStatusEvent[]
+
+  @@index([farmerId, status])
+  @@index([buyerId, status])
+  @@index([listingId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+/// Immutable audit record of state transitions in an order's lifecycle.
+model OrderStatusEvent {
+  id          String       @id @default(cuid())
+  orderId     String       @map("order_id")
+  fromStatus  OrderStatus? @map("from_status")
+  toStatus    OrderStatus  @map("to_status")
+  changedById String       @map("changed_by_id")
+  note        String?      @db.Text
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  order     Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  changedBy User  @relation(fields: [changedById], references: [id], onDelete: Restrict)
+
+  @@index([orderId, createdAt])
+  @@map("order_status_events")
 }
 
 /// Append-only record of security-sensitive, verification, and governance events.

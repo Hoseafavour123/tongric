@@ -2,6 +2,8 @@ import type {
   CreateListingInput,
   ProduceListingSummary,
   ProduceGrade,
+  AvailabilityStatus,
+  ListingSortOption,
 } from "./schemas.ts";
 
 export interface CreateListingData extends CreateListingInput {
@@ -15,6 +17,8 @@ export interface MarketplaceFilterOptions {
   cropCode?: string;
   lga?: string;
   grade?: ProduceGrade;
+  availabilityStatus?: AvailabilityStatus;
+  sortBy?: ListingSortOption;
   status?: string;
 }
 

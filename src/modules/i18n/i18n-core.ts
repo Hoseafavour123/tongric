@@ -220,6 +220,19 @@ export async function resolveDictionaryForLocale(
   return payload;
 }
 
+async function withRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
+  let attempt = 0;
+  while (true) {
+    try {
+      return await fn();
+    } catch (err: unknown) {
+      attempt++;
+      if (attempt >= retries) throw err;
+      await new Promise((res) => setTimeout(res, attempt * 500));
+    }
+  }
+}
+
 /**
  * Idempotently syncs supported pilot languages, English base keys, and empty
  * DRAFT entry placeholders for non-default languages without overwriting human edits.
@@ -228,29 +241,38 @@ export async function syncTranslationsWithRepo(
   repo: I18nRepository,
 ): Promise<{ languagesSynced: number; keysSynced: number }> {
   for (const lang of SUPPORTED_PILOT_LANGUAGES) {
-    await repo.upsertLanguage(lang);
+    await withRetry(() => repo.upsertLanguage(lang));
   }
 
   const entries = Object.entries(BASE_TRANSLATIONS);
-  const CHUNK_SIZE = 3;
+  const CHUNK_SIZE = 5;
   for (let i = 0; i < entries.length; i += CHUNK_SIZE) {
+    if (i % 25 === 0 || i + CHUNK_SIZE >= entries.length) {
+      console.log(
+        `[Tongric i18n] Syncing keys ${i + 1}–${Math.min(i + CHUNK_SIZE, entries.length)} of ${entries.length}...`,
+      );
+    }
     const chunk = entries.slice(i, i + CHUNK_SIZE);
     await Promise.all(
       chunk.map(async ([key, def]) => {
-        const keyRecord = await repo.upsertTranslationKey({
-          namespace: def.namespace,
-          key,
-          description: def.description,
-          defaultText: def.defaultText,
-        });
+        const keyRecord = await withRetry(() =>
+          repo.upsertTranslationKey({
+            namespace: def.namespace,
+            key,
+            description: def.description,
+            defaultText: def.defaultText,
+          }),
+        );
 
         for (const lang of SUPPORTED_PILOT_LANGUAGES) {
-          await repo.ensureTranslationEntry({
-            translationKeyId: keyRecord.id,
-            languageCode: lang.code,
-            defaultText: def.defaultText,
-            isDefaultLocale: lang.code === DEFAULT_LOCALE,
-          });
+          await withRetry(() =>
+            repo.ensureTranslationEntry({
+              translationKeyId: keyRecord.id,
+              languageCode: lang.code,
+              defaultText: def.defaultText,
+              isDefaultLocale: lang.code === DEFAULT_LOCALE,
+            }),
+          );
         }
       }),
     );

@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/layout/app-shell";
 import { VerificationSubmissionView } from "@/components/profile/verification-submission-view";
 import { requireAuth } from "@/modules/auth/guards";
 import {
@@ -41,11 +40,9 @@ export default async function VerificationPage() {
   }
 
   return (
-    <AppShell>
-      <VerificationSubmissionView
-        initialDocument={document}
-        currentStatus={currentStatus}
-      />
-    </AppShell>
+    <VerificationSubmissionView
+      initialDocument={document}
+      currentStatus={currentStatus}
+    />
   );
 }

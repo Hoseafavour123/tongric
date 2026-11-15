@@ -39,6 +39,10 @@ interface RawListingWithRelations {
   farmer?: {
     fullName: string;
     phoneNumber: string;
+    farmerProfile?: {
+      verificationStatus: string;
+      cooperativeName: string | null;
+    } | null;
   } | null;
   photos?: Array<{
     id: string;
@@ -51,6 +55,17 @@ interface RawListingWithRelations {
     createdAt: Date;
   }>;
 }
+
+const farmerSelect = {
+  fullName: true,
+  phoneNumber: true,
+  farmerProfile: {
+    select: {
+      verificationStatus: true,
+      cooperativeName: true,
+    },
+  },
+} as const;
 
 function mapListingToSummary(row: RawListingWithRelations): ProduceListingSummary {
   const photos: ListingPhotoSummary[] = (row.photos ?? []).map((p) => ({
@@ -71,6 +86,13 @@ function mapListingToSummary(row: RawListingWithRelations): ProduceListingSummar
     farmerId: row.farmerId,
     farmerName: row.farmer?.fullName,
     farmerPhone: row.farmer?.phoneNumber,
+    farmerVerificationStatus: row.farmer?.farmerProfile?.verificationStatus as
+      | "UNVERIFIED"
+      | "PENDING"
+      | "VERIFIED"
+      | "REJECTED"
+      | undefined,
+    cooperativeName: row.farmer?.farmerProfile?.cooperativeName ?? null,
     title: row.title,
     cropCode: row.cropCode,
     cropCategory: row.cropCategory,
@@ -137,7 +159,7 @@ export function createPrismaMarketplaceRepository(
         },
         include: {
           photos: { orderBy: { createdAt: "asc" } },
-          farmer: { select: { fullName: true, phoneNumber: true } },
+          farmer: { select: farmerSelect },
         },
       });
 
@@ -149,7 +171,7 @@ export function createPrismaMarketplaceRepository(
         where: { id },
         include: {
           photos: { orderBy: { createdAt: "asc" } },
-          farmer: { select: { fullName: true, phoneNumber: true } },
+          farmer: { select: farmerSelect },
         },
       });
 
@@ -163,7 +185,7 @@ export function createPrismaMarketplaceRepository(
         orderBy: { createdAt: "desc" },
         include: {
           photos: { orderBy: { createdAt: "asc" } },
-          farmer: { select: { fullName: true, phoneNumber: true } },
+          farmer: { select: farmerSelect },
         },
       });
 
@@ -188,13 +210,27 @@ export function createPrismaMarketplaceRepository(
       if (filter?.grade) {
         where.grade = filter.grade;
       }
+      if (filter?.availabilityStatus) {
+        where.availabilityStatus = filter.availabilityStatus;
+      }
+
+      let orderBy: Record<string, "asc" | "desc"> = { createdAt: "desc" };
+      if (filter?.sortBy === "price_asc") {
+        orderBy = { pricePerUnit: "asc" };
+      } else if (filter?.sortBy === "price_desc") {
+        orderBy = { pricePerUnit: "desc" };
+      } else if (filter?.sortBy === "quantity_desc") {
+        orderBy = { quantity: "desc" };
+      } else if (filter?.sortBy === "newest") {
+        orderBy = { createdAt: "desc" };
+      }
 
       const listings = await db.produceListing.findMany({
         where,
-        orderBy: { createdAt: "desc" },
+        orderBy,
         include: {
           photos: { orderBy: { createdAt: "asc" } },
-          farmer: { select: { fullName: true, phoneNumber: true } },
+          farmer: { select: farmerSelect },
         },
       });
 

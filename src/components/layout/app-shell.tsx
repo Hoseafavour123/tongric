@@ -2,10 +2,12 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   ClipboardList,
   Home,
   Landmark,
+  ShieldCheck,
   Store,
   Truck,
   User,
@@ -41,9 +43,23 @@ export interface AppShellProps {
  *   plus a fixed 5-tab app-like bottom bar (Home, Market, Orders, Transport, Finance).
  * - Desktop (>= 768px): Clean single-row top navigation bar without sidebar bloat.
  */
-export function AppShell({ activeSection = "home", children }: AppShellProps) {
+export function AppShell({ activeSection: activeSectionProp, children }: AppShellProps) {
   const { t } = useI18n();
   const { user } = useAuth();
+  const pathname = usePathname();
+
+  function resolveActiveSection(): CoreSectionId {
+    if (activeSectionProp) return activeSectionProp;
+    if (!pathname) return "home";
+    if (pathname.startsWith("/market")) return "marketplace";
+    if (pathname.startsWith("/orders")) return "orders";
+    if (pathname.startsWith("/transport")) return "logistics";
+    if (pathname.startsWith("/finance")) return "finance";
+    return "home";
+  }
+
+  const activeSection = resolveActiveSection();
+
   const accountLabel = user
     ? user.fullName.trim().split(" ")[0] || user.fullName
     : t(ACCOUNT_NAV_ITEM.labelKey);
@@ -99,6 +115,16 @@ export function AppShell({ activeSection = "home", children }: AppShellProps) {
           </div>
 
           <div className="flex items-center gap-2.5">
+            {user?.role === "ADMIN" && (
+              <Link
+                href="/admin/verifications"
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-900 transition-colors hover:bg-amber-100"
+                title="Admin Verification Queue"
+              >
+                <ShieldCheck className="h-3.5 w-3.5 text-amber-700" />
+                <span>Admin Review</span>
+              </Link>
+            )}
             <WorkspaceModeSwitch />
             <LanguageSwitcher />
             <Link
@@ -127,6 +153,16 @@ export function AppShell({ activeSection = "home", children }: AppShellProps) {
         </Link>
 
         <div className="flex items-center gap-1.5">
+          {user?.role === "ADMIN" && (
+            <Link
+              href="/admin/verifications"
+              aria-label="Admin Review"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-amber-300 bg-amber-50 text-amber-900 transition-colors hover:bg-amber-100"
+              title="Admin Verification Queue"
+            >
+              <ShieldCheck className="h-4 w-4 text-amber-700" />
+            </Link>
+          )}
           <WorkspaceModeSwitch compact />
           <LanguageSwitcher compact />
           <Link

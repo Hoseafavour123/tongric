@@ -311,20 +311,18 @@ export class PrismaProfileRepository implements ProfileRepository {
         },
       });
 
-      await Promise.all([
-        tx.farmerProfile.updateMany({
-          where: { userId: input.userId },
-          data: { verificationStatus: "PENDING" },
-        }),
-        tx.buyerProfile.updateMany({
-          where: { userId: input.userId },
-          data: { verificationStatus: "PENDING" },
-        }),
-        tx.transportProfile.updateMany({
-          where: { userId: input.userId },
-          data: { verificationStatus: "PENDING" },
-        }),
-      ]);
+      await tx.farmerProfile.updateMany({
+        where: { userId: input.userId },
+        data: { verificationStatus: "PENDING" },
+      });
+      await tx.buyerProfile.updateMany({
+        where: { userId: input.userId },
+        data: { verificationStatus: "PENDING" },
+      });
+      await tx.transportProfile.updateMany({
+        where: { userId: input.userId },
+        data: { verificationStatus: "PENDING" },
+      });
 
       return created;
     });

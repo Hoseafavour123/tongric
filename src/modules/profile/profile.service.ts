@@ -1,4 +1,5 @@
 import { getDb } from "@/lib/db";
+import { ForbiddenError } from "@/lib/errors";
 import { getStorageProvider } from "@/lib/storage";
 import {
   getBuyerProfileWithRepo,
@@ -158,6 +159,21 @@ export async function listPendingVerifications(
     getStorageProvider(),
     filters,
   );
+}
+
+export async function getVerificationDocumentById(
+  actor: ProfileActor,
+  documentId: string,
+): Promise<VerificationDocumentSummary | null> {
+  const repo = getProfileRepo();
+  const doc = await repo.findVerificationDocumentById(documentId);
+  if (!doc) return null;
+  if (actor.role !== "ADMIN" && actor.id !== doc.userId) {
+    throw new ForbiddenError(
+      "You do not have permission to view this document.",
+    );
+  }
+  return doc;
 }
 
 export async function reviewVerificationDocument(

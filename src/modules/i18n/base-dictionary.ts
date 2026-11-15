@@ -10,6 +10,7 @@ export interface PilotLanguageDefinition {
 import { AUTH_AND_PRIVACY_TRANSLATIONS } from "./auth-dictionary.ts";
 import { PROFILE_TRANSLATIONS } from "./profile-dictionary.ts";
 import { MARKETPLACE_TRANSLATIONS } from "./marketplace-dictionary.ts";
+import { ORDERS_TRANSLATIONS } from "./orders-dictionary.ts";
 
 export const DEFAULT_LOCALE = "en" as const;
 
@@ -62,6 +63,7 @@ export const BASE_TRANSLATIONS = {
   ...AUTH_AND_PRIVACY_TRANSLATIONS,
   ...PROFILE_TRANSLATIONS,
   ...MARKETPLACE_TRANSLATIONS,
+  ...ORDERS_TRANSLATIONS,
   // Common UI controls
   "common.appName": {
     namespace: "common",

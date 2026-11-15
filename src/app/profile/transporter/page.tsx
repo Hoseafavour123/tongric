@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/layout/app-shell";
 import { TransportProfileView } from "@/components/profile/transport-profile-view";
 import { requireAuth } from "@/modules/auth/guards";
 import { getTransportProfile } from "@/modules/profile";
@@ -22,10 +21,6 @@ export default async function TransporterProfilePage() {
 
   const profile = await getTransportProfile(session.user.id);
 
-  return (
-    <AppShell>
-      <TransportProfileView initialProfile={profile} />
-    </AppShell>
-  );
+  return <TransportProfileView initialProfile={profile} />;
 }
 

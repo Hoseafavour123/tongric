@@ -51,7 +51,11 @@ export async function POST(request: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = new Uint8Array(arrayBuffer);
 
-    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const rawExt = file.name.includes(".") ? file.name.split(".").pop() || "" : "";
+    const cleanExt = rawExt.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8);
+    const rawBase = file.name.includes(".") ? file.name.slice(0, file.name.lastIndexOf(".")) : file.name;
+    const cleanBase = rawBase.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 40) || "photo";
+    const safeName = cleanExt ? `${cleanBase}.${cleanExt}` : cleanBase;
     const storageKey = `marketplace/${session.user.id}/${Date.now()}-${safeName}`;
 
     const stored = await storage.upload({

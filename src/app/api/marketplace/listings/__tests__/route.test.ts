@@ -63,17 +63,20 @@ describe("GET & POST /api/marketplace/listings", () => {
     it("returns 200 with active listings and filters", async () => {
       mockListActiveListings.mockResolvedValueOnce([sampleListing]);
 
-      const req = new Request("http://localhost:3000/api/marketplace/listings?cropCode=yam&lga=gboko&grade=GRADE_B");
+      const req = new Request("http://localhost:3000/api/marketplace/listings?cropCode=yam&lga=gboko&grade=GRADE_B&availability=AVAILABLE_NOW&sort=price_asc");
       const res = await GET(req);
       const json = await res.json();
 
       expect(res.status).toBe(200);
       expect(json.ok).toBe(true);
       expect(json.data.listings).toHaveLength(1);
+      expect(json.data.totalCount).toBe(1);
       expect(mockListActiveListings).toHaveBeenCalledWith({
         cropCode: "yam",
         lga: "gboko",
         grade: "GRADE_B",
+        availabilityStatus: "AVAILABLE_NOW",
+        sortBy: "price_asc",
       });
     });
   });

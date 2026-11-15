@@ -375,5 +375,138 @@ export const MARKETPLACE_TRANSLATIONS = {
     description: "Button to contact seller",
     defaultText: "Contact Farmer",
   },
+  /* ------------------------------------------------------------------------ */
+  /* Marketplace Discovery, Filtering & Listing Detail Entries               */
+  /* ------------------------------------------------------------------------ */
+  "marketplace.filter.allCrops": {
+    namespace: "marketplace",
+    description: "Label for all crops filter chip",
+    defaultText: "All Crops",
+  },
+  "marketplace.filter.allLgas": {
+    namespace: "marketplace",
+    description: "Option for all Benue LGAs",
+    defaultText: "All LGAs (Benue)",
+  },
+  "marketplace.filter.allGrades": {
+    namespace: "marketplace",
+    description: "Option for all quality grades",
+    defaultText: "All Grades",
+  },
+  "marketplace.filter.allAvailability": {
+    namespace: "marketplace",
+    description: "Option for all harvest availability states",
+    defaultText: "All Availability",
+  },
+  "marketplace.filter.availableNow": {
+    namespace: "marketplace",
+    description: "Option for ready produce",
+    defaultText: "Available Now",
+  },
+  "marketplace.filter.upcomingHarvest": {
+    namespace: "marketplace",
+    description: "Option for upcoming harvest produce",
+    defaultText: "Upcoming Harvest",
+  },
+  "marketplace.filter.sortNewest": {
+    namespace: "marketplace",
+    description: "Sort option for newest listings",
+    defaultText: "Newest First",
+  },
+  "marketplace.filter.sortPriceAsc": {
+    namespace: "marketplace",
+    description: "Sort option for lowest price per unit",
+    defaultText: "Price: Low to High",
+  },
+  "marketplace.filter.sortPriceDesc": {
+    namespace: "marketplace",
+    description: "Sort option for highest price per unit",
+    defaultText: "Price: High to Low",
+  },
+  "marketplace.filter.sortQtyDesc": {
+    namespace: "marketplace",
+    description: "Sort option for highest quantity",
+    defaultText: "Quantity: High to Low",
+  },
+  "marketplace.filter.reset": {
+    namespace: "marketplace",
+    description: "Button to clear all filters",
+    defaultText: "Reset Filters",
+  },
+  "marketplace.filter.resultsCount": {
+    namespace: "marketplace",
+    description: "Header showing number of matching produce listings",
+    defaultText: "Showing produce listings",
+  },
+  "marketplace.filter.noResults": {
+    namespace: "marketplace",
+    description: "Notice when no produce listings match filter criteria",
+    defaultText: "No listings match your selected filters.",
+  },
+  "marketplace.detail.backToMarket": {
+    namespace: "marketplace",
+    description: "Back button linking to marketplace overview",
+    defaultText: "Back to Marketplace",
+  },
+  "marketplace.detail.callFarmer": {
+    namespace: "marketplace",
+    description: "Call to action button to call farmer directly",
+    defaultText: "Call Farmer",
+  },
+  "marketplace.detail.makeOffer": {
+    namespace: "marketplace",
+    description: "Call to action button to start commercial enquiry or offer",
+    defaultText: "Start Purchase / Make Offer",
+  },
+  "marketplace.detail.verifiedSeller": {
+    namespace: "marketplace",
+    description: "Badge indicating farmer verification",
+    defaultText: "Verified Farmer",
+  },
+  "marketplace.detail.unverifiedSeller": {
+    namespace: "marketplace",
+    description: "Badge indicating unverified farmer",
+    defaultText: "Unverified Farmer",
+  },
+  "marketplace.detail.minOrder": {
+    namespace: "marketplace",
+    description: "Minimum order quantity label on detail view",
+    defaultText: "Minimum Order Quantity",
+  },
+  "marketplace.detail.totalAvailable": {
+    namespace: "marketplace",
+    description: "Total available stock quantity label",
+    defaultText: "Total Available Quantity",
+  },
+  "marketplace.detail.estimatedWeight": {
+    namespace: "marketplace",
+    description: "Total estimated weight label on detail view",
+    defaultText: "Estimated Total Weight",
+  },
+  "marketplace.detail.harvestDate": {
+    namespace: "marketplace",
+    description: "Estimated harvest date label",
+    defaultText: "Estimated Harvest Date",
+  },
+  "marketplace.detail.sellerInfo": {
+    namespace: "marketplace",
+    description: "Section heading for farmer identity and origin",
+    defaultText: "Farmer & Farm Origin",
+  },
+  "marketplace.detail.produceDetails": {
+    namespace: "marketplace",
+    description: "Section heading for produce commercial specifications",
+    defaultText: "Commercial Specifications",
+  },
+  "marketplace.detail.perishable": {
+    namespace: "marketplace",
+    description: "Tag for perishable produce requiring rapid logistics",
+    defaultText: "Perishable Produce",
+  },
+  "marketplace.detail.cooperative": {
+    namespace: "marketplace",
+    description: "Cooperative label on detail view",
+    defaultText: "Cooperative",
+  },
 } as const;
 

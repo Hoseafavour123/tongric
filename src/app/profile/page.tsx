@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/layout/app-shell";
 import { FarmerProfileView } from "@/components/profile/farmer-profile-view";
 import { requireAuth } from "@/modules/auth/guards";
 import { getFarmerProfile } from "@/modules/profile";
@@ -19,10 +18,6 @@ export default async function ProfilePage() {
 
   const profile = await getFarmerProfile(session.user.id);
 
-  return (
-    <AppShell>
-      <FarmerProfileView initialProfile={profile} />
-    </AppShell>
-  );
+  return <FarmerProfileView initialProfile={profile} />;
 }
 

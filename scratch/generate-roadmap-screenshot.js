@@ -1,0 +1,237 @@
+const sharp = require('sharp');
+const path = require('path');
+const fs = require('fs');
+
+const outDir = path.resolve(process.cwd(), 'public/grant-screenshots');
+if (!fs.existsSync(outDir)) {
+  fs.mkdirSync(outDir, { recursive: true });
+}
+
+const W = 390;
+const H = 844;
+
+function frame(tab, mode, title, content) {
+  const tabs = [
+    { id: 'home', label: 'Home', icon: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' },
+    { id: 'market', label: 'Market', icon: 'M3 3h18v4H3z M3 7l2 14h14l2-14' },
+    { id: 'orders', label: 'Orders', icon: 'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2' },
+    { id: 'transport', label: 'Transport', icon: 'M1 3h15v13H1z M16 8h4l3 3v5h-7' },
+    { id: 'finance', label: 'Finance', icon: 'M3 21h18M3 10h18M5 10v11M19 10v11M12 2l10 5H2z' },
+  ];
+
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-opacity="0.12" />
+    </filter>
+    <clipPath id="screenClip">
+      <rect x="0" y="0" width="${W}" height="${H}" rx="42" />
+    </clipPath>
+  </defs>
+
+  <!-- Phone Shell -->
+  <rect x="0" y="0" width="${W}" height="${H}" rx="42" fill="#ffffff" filter="url(#shadow)" stroke="#cbd5e1" stroke-width="2.5"/>
+
+  <g clip-path="url(#screenClip)">
+    <!-- Status Bar -->
+    <rect x="0" y="0" width="${W}" height="44" fill="#ffffff"/>
+    <text x="34" y="29" font-size="14" font-weight="600" fill="#0f172a">09:41</text>
+    <rect x="135" y="10" width="120" height="24" rx="12" fill="#0f172a"/>
+    <circle cx="236" cy="22" r="5" fill="#1e293b"/>
+    
+    <!-- Status Icons -->
+    <g transform="translate(320, 18)" fill="#0f172a">
+      <rect x="16" y="2" width="22" height="11" rx="3" fill="none" stroke="#0f172a" stroke-width="1.5"/>
+      <rect x="18" y="4" width="14" height="7" rx="1.5" fill="#0f172a"/>
+      <path d="M39 5.5v4" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M9 11a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+      <path d="M4.5 7.5a5 5 0 0 1 6 0" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <rect x="-1" y="9" width="2" height="4" rx="0.5"/>
+      <rect x="2" y="6" width="2" height="7" rx="0.5"/>
+      <rect x="5" y="3" width="2" height="10" rx="0.5"/>
+    </g>
+
+    <!-- Top Header Navigation -->
+    <rect x="0" y="44" width="${W}" height="52" fill="#ffffff" stroke="#f1f5f9" stroke-width="1"/>
+    <g transform="translate(16, 55)">
+      <rect x="0" y="0" width="28" height="28" rx="6" fill="#15803d"/>
+      <text x="14" y="20" font-size="15" font-weight="800" fill="#ffffff" text-anchor="middle">T</text>
+      <text x="36" y="20" font-size="16" font-weight="700" fill="#0f172a">Tongric</text>
+    </g>
+
+    <g transform="translate(230, 55)">
+      <!-- Roadmap Badge -->
+      <rect x="0" y="1" width="80" height="26" rx="6" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+      <text x="40" y="18" font-size="10" font-weight="700" fill="#15803d" text-anchor="middle">ROADMAP</text>
+
+      <!-- Language -->
+      <rect x="88" y="1" width="48" height="26" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="112" y="18" font-size="10" font-weight="600" fill="#334155" text-anchor="middle">🌐 EN</text>
+    </g>
+
+    <!-- Body Content Area -->
+    <g transform="translate(0, 96)">
+      ${content}
+    </g>
+
+    <!-- Bottom Navigation Bar -->
+    <g transform="translate(0, 770)">
+      <rect x="0" y="0" width="${W}" height="74" fill="#ffffff" stroke="#f1f5f9" stroke-width="1"/>
+      ${tabs.map((t, i) => {
+        const x = i * 78 + 39;
+        const active = t.id === tab;
+        const color = active ? '#15803d' : '#64748b';
+        return `
+          <g transform="translate(${x}, 14)">
+            ${active ? `<line x1="-16" y1="-14" x2="16" y2="-14" stroke="#15803d" stroke-width="3" stroke-linecap="round"/>` : ''}
+            <path d="${t.icon}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" transform="translate(-10, -2) scale(0.9)"/>
+            <text x="0" y="24" font-size="10" font-weight="${active ? '700' : '500'}" fill="${color}" text-anchor="middle">${t.label}</text>
+          </g>
+        `;
+      }).join('')}
+      <rect x="125" y="60" width="140" height="4" rx="2" fill="#0f172a"/>
+    </g>
+  </g>
+</svg>`;
+}
+
+// -----------------------------------------------------------------------------
+// Screen 14: Visual Strategic Roadmap & Timeline
+// -----------------------------------------------------------------------------
+const screen14 = frame('finance', 'FARMER', 'Strategic Roadmap', `
+  <!-- Header Title -->
+  <g transform="translate(16, 12)">
+    <rect x="0" y="0" width="138" height="20" rx="4" fill="#dcfce7"/>
+    <text x="69" y="14" font-size="9" font-weight="800" fill="#15803d" text-anchor="middle">STRATEGIC ROADMAP</text>
+
+    <text x="0" y="42" font-size="19" font-weight="800" fill="#0f172a">Future Features &amp; Vision</text>
+    <text x="0" y="58" font-size="11" fill="#64748b">Phased timeline from core MVP to state-wide rural impact</text>
+  </g>
+
+  <!-- Visual Timeline Spine & Nodes -->
+  <g transform="translate(16, 76)">
+    <!-- Vertical Spine Line -->
+    <line x1="20" y1="18" x2="20" y2="480" stroke="#cbd5e1" stroke-width="2.5" stroke-dasharray="4 4"/>
+
+    <!-- Milestone 1 (Current Stage): Phase 6 Completion -->
+    <g transform="translate(0, 0)">
+      <circle cx="20" cy="18" r="14" fill="#15803d" stroke="#dcfce7" stroke-width="4"/>
+      <text x="20" y="22" font-size="10" font-weight="800" fill="#ffffff" text-anchor="middle">6</text>
+
+      <g transform="translate(44, 4)">
+        <rect x="0" y="0" width="314" height="82" rx="10" fill="#ffffff" stroke="#86efac" stroke-width="1.5"/>
+        <rect x="10" y="10" width="84" height="18" rx="4" fill="#dcfce7"/>
+        <text x="52" y="22" font-size="9" font-weight="800" fill="#15803d" text-anchor="middle">CURRENT STAGE</text>
+        <text x="104" y="22" font-size="10" font-weight="600" fill="#64748b">Q4 2026</text>
+
+        <text x="10" y="46" font-size="13" font-weight="800" fill="#0f172a">Order Lifecycle &amp; Dispute Review</text>
+        <text x="10" y="62" font-size="10" fill="#475569">Milestone progression, cancellation rollback, dispute mediation.</text>
+        <text x="10" y="74" font-size="9" font-weight="700" fill="#15803d">Status: Implementation In Progress</text>
+      </g>
+    </g>
+
+    <!-- Milestone 2: Phase 7 Logistics Coordination -->
+    <g transform="translate(0, 96)">
+      <circle cx="20" cy="18" r="12" fill="#0284c7" stroke="#e0f2fe" stroke-width="4"/>
+      <text x="20" y="22" font-size="10" font-weight="800" fill="#ffffff" text-anchor="middle">7</text>
+
+      <g transform="translate(44, 4)">
+        <rect x="0" y="0" width="314" height="82" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+        <rect x="10" y="10" width="76" height="18" rx="4" fill="#e0f2fe"/>
+        <text x="48" y="22" font-size="9" font-weight="800" fill="#0369a1" text-anchor="middle">NEXT PHASE</text>
+        <text x="96" y="22" font-size="10" font-weight="600" fill="#64748b">Q1 2027</text>
+
+        <text x="10" y="46" font-size="13" font-weight="800" fill="#0f172a">Integrated Logistics &amp; Carrier Bids</text>
+        <text x="10" y="62" font-size="10" fill="#475569">Carrier matching, dispatch quote requests, transit confirmation.</text>
+        <text x="10" y="74" font-size="9" font-weight="600" fill="#0284c7">Unlocks: Transporter fleet matching across 23 LGAs</text>
+      </g>
+    </g>
+
+    <!-- Milestone 3: Phase 8 Multi-Channel Notifications -->
+    <g transform="translate(0, 192)">
+      <circle cx="20" cy="18" r="12" fill="#7c3aed" stroke="#ede9fe" stroke-width="4"/>
+      <text x="20" y="22" font-size="10" font-weight="800" fill="#ffffff" text-anchor="middle">8</text>
+
+      <g transform="translate(44, 4)">
+        <rect x="0" y="0" width="314" height="82" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+        <rect x="10" y="10" width="86" height="18" rx="4" fill="#ede9fe"/>
+        <text x="53" y="22" font-size="9" font-weight="800" fill="#6d28d9" text-anchor="middle">GOVERNANCE</text>
+        <text x="106" y="22" font-size="10" font-weight="600" fill="#64748b">Q2 2027</text>
+
+        <text x="10" y="46" font-size="13" font-weight="800" fill="#0f172a">SMS Fallback &amp; Operator Console</text>
+        <text x="10" y="62" font-size="10" fill="#475569">Offline SMS alerts, operator-assisted cooperative onboarding.</text>
+        <text x="10" y="74" font-size="9" font-weight="600" fill="#7c3aed">Native validation across Tiv, Idoma, Hausa</text>
+      </g>
+    </g>
+
+    <!-- Milestone 4: Phase 9 Extended Demonstrations -->
+    <g transform="translate(0, 288)">
+      <circle cx="20" cy="18" r="12" fill="#d97706" stroke="#fef3c7" stroke-width="4"/>
+      <text x="20" y="22" font-size="10" font-weight="800" fill="#ffffff" text-anchor="middle">9</text>
+
+      <g transform="translate(44, 4)">
+        <rect x="0" y="0" width="314" height="86" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+        <rect x="10" y="10" width="94" height="18" rx="4" fill="#fef3c7"/>
+        <text x="57" y="22" font-size="9" font-weight="800" fill="#b45309" text-anchor="middle">INNOVATION PILOT</text>
+        <text x="114" y="22" font-size="10" font-weight="600" fill="#64748b">Q3 2027</text>
+
+        <text x="10" y="46" font-size="13" font-weight="800" fill="#0f172a">Barter Exchange &amp; Micro-Credit</text>
+        <text x="10" y="62" font-size="10" fill="#475569">Tubers-to-grain barter demonstration; seasonal input credit underwriting based on verified digital trade receipts.</text>
+      </g>
+    </g>
+
+    <!-- Milestone 5: Phase 10 Scale & Pilot Launch -->
+    <g transform="translate(0, 388)">
+      <circle cx="20" cy="18" r="12" fill="#059669" stroke="#d1fae5" stroke-width="4"/>
+      <text x="20" y="22" font-size="10" font-weight="800" fill="#ffffff" text-anchor="middle">10</text>
+
+      <g transform="translate(44, 4)">
+        <rect x="0" y="0" width="314" height="78" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+        <rect x="10" y="10" width="98" height="18" rx="4" fill="#d1fae5"/>
+        <text x="59" y="22" font-size="9" font-weight="800" fill="#047857" text-anchor="middle">FULL BENUE PILOT</text>
+        <text x="118" y="22" font-size="10" font-weight="600" fill="#64748b">Harvest 2027</text>
+
+        <text x="10" y="46" font-size="13" font-weight="800" fill="#0f172a">State-Wide Cooperative Rollout</text>
+        <text x="10" y="62" font-size="10" fill="#475569">5,000+ smallholders across 23 LGAs; full pilot evaluation.</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Grant Impact Callout Footer -->
+  <g transform="translate(16, 584)">
+    <rect x="0" y="0" width="358" height="78" rx="10" fill="#15803d"/>
+    <text x="14" y="22" font-size="12" font-weight="800" fill="#ffffff">Grant Opportunity Impact</text>
+    <text x="14" y="40" font-size="10" fill="#dcfce7">Catalyzing food loss reduction, eliminating rural middleman</text>
+    <text x="14" y="54" font-size="10" fill="#dcfce7">exploitation, and creating digital financial inclusion in Benue State.</text>
+    <text x="14" y="68" font-size="9" font-weight="700" fill="#fef08a">Solid White Background • 44px+ Touch Targets • 4 Nigerian Languages</text>
+  </g>
+`);
+
+async function run() {
+  const svgPath = path.join(outDir, '14_product_roadmap_timeline.svg');
+  const pngPath = path.join(outDir, '14_product_roadmap_timeline.png');
+
+  fs.writeFileSync(svgPath, screen14, 'utf8');
+
+  await sharp(Buffer.from(screen14))
+    .resize(780, 1688)
+    .png({ quality: 95 })
+    .toFile(pngPath);
+
+  console.log('✓ Generated 14_product_roadmap_timeline.png & .svg successfully.');
+
+  // Append to README.md
+  const readmePath = path.join(outDir, 'README.md');
+  let readme = fs.readFileSync(readmePath, 'utf8');
+
+  const rowToAdd = `| **14** | **Strategic Product Roadmap** | Roadmaps / Phases 6–10 | Visual timeline of upcoming phases: Logistics bidding, SMS fallback, Barter demo, Input credit, State-wide pilot | [\`PNG\`](file:///c:/Users/USER/Desktop/tongric/public/grant-screenshots/14_product_roadmap_timeline.png) • [\`SVG\`](file:///c:/Users/USER/Desktop/tongric/public/grant-screenshots/14_product_roadmap_timeline.svg) |\n`;
+
+  if (!readme.includes('14_product_roadmap_timeline')) {
+    readme = readme.replace('## Technical Specifications', `${rowToAdd}\n---\n\n## Technical Specifications`);
+    fs.writeFileSync(readmePath, readme, 'utf8');
+    console.log('✓ Updated README.md with Screen 14 row.');
+  }
+}
+
+run().catch(console.error);
+

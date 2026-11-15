@@ -119,11 +119,15 @@ export interface ListingPhotoSummary {
   createdAt: string;
 }
 
+export type ListingSortOption = "newest" | "price_asc" | "price_desc" | "quantity_desc";
+
 export interface ProduceListingSummary {
   id: string;
   farmerId: string;
   farmerName?: string;
   farmerPhone?: string;
+  farmerVerificationStatus?: "UNVERIFIED" | "PENDING" | "VERIFIED" | "REJECTED";
+  cooperativeName?: string | null;
   title: string;
   cropCode: string;
   cropCategory: string;

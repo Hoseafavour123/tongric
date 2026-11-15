@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/layout/app-shell";
 import { BuyerProfileView } from "@/components/profile/buyer-profile-view";
 import { requireAuth } from "@/modules/auth/guards";
 import { getBuyerProfile } from "@/modules/profile";
@@ -19,10 +18,6 @@ export default async function BuyerProfilePage() {
 
   const profile = await getBuyerProfile(session.user.id);
 
-  return (
-    <AppShell>
-      <BuyerProfileView initialProfile={profile} />
-    </AppShell>
-  );
+  return <BuyerProfileView initialProfile={profile} />;
 }
 

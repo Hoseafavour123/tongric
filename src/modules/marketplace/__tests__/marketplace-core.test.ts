@@ -109,12 +109,23 @@ function createMockRepo(): MarketplaceRepository & {
       return listings.filter((l) => l.farmerId === farmerId);
     },
     async listActiveListings(filter?: MarketplaceFilterOptions): Promise<ProduceListingSummary[]> {
-      return listings.filter((l) => {
+      const results = listings.filter((l) => {
         if (filter?.cropCode && l.cropCode !== filter.cropCode) return false;
         if (filter?.lga && l.lga !== filter.lga) return false;
         if (filter?.grade && l.grade !== filter.grade) return false;
+        if (filter?.availabilityStatus && l.availabilityStatus !== filter.availabilityStatus) return false;
         return l.status === "ACTIVE";
       });
+
+      if (filter?.sortBy === "price_asc") {
+        results.sort((a, b) => a.pricePerUnit - b.pricePerUnit);
+      } else if (filter?.sortBy === "price_desc") {
+        results.sort((a, b) => b.pricePerUnit - a.pricePerUnit);
+      } else if (filter?.sortBy === "quantity_desc") {
+        results.sort((a, b) => b.quantity - a.quantity);
+      }
+
+      return results;
     },
     async recordMarketplaceAudit(entry: MarketplaceAuditInput): Promise<void> {
       audits.push(entry);
@@ -291,6 +302,75 @@ describe("marketplace-core", () => {
       const gbokoListings = await listActiveListingsWithRepo(repo, { lga: "gboko" });
       expect(gbokoListings).toHaveLength(1);
       expect(gbokoListings[0]?.lga).toBe("gboko");
+    });
+
+    it("filters active listings by availabilityStatus", async () => {
+      const repo = createMockRepo();
+      await repo.createListing({
+        ...sampleInput,
+        farmerId: "f-1",
+        title: "Ready Tomatoes",
+        cropCode: "tomatoes",
+        availabilityStatus: "AVAILABLE_NOW",
+        cropCategory: "horticulture",
+        estimatedWeightKg: 1000,
+      });
+      await repo.createListing({
+        ...sampleInput,
+        farmerId: "f-2",
+        title: "Upcoming Mangoes",
+        cropCode: "mangoes",
+        availabilityStatus: "UPCOMING_HARVEST",
+        harvestDate: "2026-12-01",
+        cropCategory: "tree_crop",
+        estimatedWeightKg: 1500,
+      });
+
+      const readyOnly = await listActiveListingsWithRepo(repo, {
+        availabilityStatus: "AVAILABLE_NOW",
+      });
+      expect(readyOnly).toHaveLength(1);
+      expect(readyOnly[0]?.cropCode).toBe("tomatoes");
+
+      const upcomingOnly = await listActiveListingsWithRepo(repo, {
+        availabilityStatus: "UPCOMING_HARVEST",
+      });
+      expect(upcomingOnly).toHaveLength(1);
+      expect(upcomingOnly[0]?.cropCode).toBe("mangoes");
+    });
+
+    it("sorts active listings by price and quantity", async () => {
+      const repo = createMockRepo();
+      await repo.createListing({
+        ...sampleInput,
+        farmerId: "f-1",
+        title: "Cheap Yam",
+        pricePerUnit: 10000,
+        quantity: 20,
+        cropCategory: "tuber",
+        estimatedWeightKg: 1000,
+      });
+      await repo.createListing({
+        ...sampleInput,
+        farmerId: "f-2",
+        title: "Expensive Yam",
+        pricePerUnit: 50000,
+        quantity: 100,
+        cropCategory: "tuber",
+        estimatedWeightKg: 5000,
+      });
+
+      const priceAsc = await listActiveListingsWithRepo(repo, { sortBy: "price_asc" });
+      expect(priceAsc[0]?.pricePerUnit).toBe(10000);
+      expect(priceAsc[1]?.pricePerUnit).toBe(50000);
+
+      const priceDesc = await listActiveListingsWithRepo(repo, { sortBy: "price_desc" });
+      expect(priceDesc[0]?.pricePerUnit).toBe(50000);
+      expect(priceDesc[1]?.pricePerUnit).toBe(10000);
+
+      const qtyDesc = await listActiveListingsWithRepo(repo, { sortBy: "quantity_desc" });
+      expect(qtyDesc[0]?.quantity).toBe(100);
+      expect(qtyDesc[1]?.quantity).toBe(20);
     });
   });
 });

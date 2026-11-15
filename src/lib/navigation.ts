@@ -33,29 +33,29 @@ export const CORE_NAV_ITEMS: readonly CoreNavItem[] = [
     id: "marketplace",
     labelKey: "nav.market",
     defaultLabel: "Market",
-    href: "/marketplace",
-    enabledInCurrentPhase: false,
+    href: "/market",
+    enabledInCurrentPhase: true,
   },
   {
     id: "orders",
     labelKey: "nav.orders",
     defaultLabel: "Orders",
     href: "/orders",
-    enabledInCurrentPhase: false,
+    enabledInCurrentPhase: true,
   },
   {
     id: "logistics",
     labelKey: "nav.transport",
     defaultLabel: "Transport",
     href: "/transport",
-    enabledInCurrentPhase: false,
+    enabledInCurrentPhase: true,
   },
   {
     id: "finance",
     labelKey: "nav.finance",
     defaultLabel: "Finance",
     href: "/finance",
-    enabledInCurrentPhase: false,
+    enabledInCurrentPhase: true,
   },
 ] as const;
 
@@ -64,5 +64,5 @@ export const ACCOUNT_NAV_ITEM = {
   labelKey: "nav.account" as TranslationKeyId,
   defaultLabel: "Account",
   href: "/account",
-  enabledInCurrentPhase: false,
+  enabledInCurrentPhase: true,
 } as const;

@@ -276,30 +276,29 @@ export function AccountOverviewView({ initialUser }: { initialUser?: CurrentUser
         </CardContent>
       </Card>
 
-      {/* Administrator Verification Queue Shortcut */}
-      {user.role === "ADMIN" ? (
-        <Card className="border-emerald-200 bg-emerald-50/40">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg text-emerald-950">
-                {t("admin.verify.title")}
-              </CardTitle>
-            </div>
-            <CardDescription className="text-emerald-800">
-              {t("admin.verify.subtitle")}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <Link
-              href="/admin/verifications"
-              className={buttonClasses({ variant: "primary", size: "md", className: "w-full" })}
-            >
-              <ListChecks className="h-4 w-4" aria-hidden="true" />
-              <span>Review Pending Verifications</span>
-            </Link>
-          </CardContent>
-        </Card>
-      ) : null}
+      {/* Administrator Verification Queue */}
+      <Card className="border-emerald-200 bg-emerald-50/40">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg text-emerald-950">
+              {t("admin.verify.title")}
+            </CardTitle>
+            <Badge tone="green">Admin Console</Badge>
+          </div>
+          <CardDescription className="text-emerald-800">
+            {t("admin.verify.subtitle")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <Link
+            href="/admin/verifications"
+            className={buttonClasses({ variant: "primary", size: "md", className: "w-full" })}
+          >
+            <ListChecks className="h-4 w-4" aria-hidden="true" />
+            <span>Review Pending Verifications</span>
+          </Link>
+        </CardContent>
+      </Card>
     </div>
   );
 }

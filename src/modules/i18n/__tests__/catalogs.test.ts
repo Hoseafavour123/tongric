@@ -51,9 +51,9 @@ describe("structured translatable catalogs", () => {
     expect(estimateWeightKg(10, "unknown_unit")).toBeNull();
   });
 
-  it("keeps the full English translation dictionary payload compact under 25 KB", () => {
+  it("keeps the full English translation dictionary payload compact under 35 KB", () => {
     const serialized = JSON.stringify(getDefaultDictionary());
-    expect(Buffer.byteLength(serialized, "utf8")).toBeLessThan(25 * 1024);
+    expect(Buffer.byteLength(serialized, "utf8")).toBeLessThan(35 * 1024);
   });
 });
 

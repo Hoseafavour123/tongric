@@ -5,7 +5,10 @@ import {
   createProduceListing,
   listActiveListings,
   produceGradeEnum,
+  availabilityStatusEnum,
   type ProduceGrade,
+  type AvailabilityStatus,
+  type ListingSortOption,
 } from "@/modules/marketplace";
 
 function extractClientIp(request: Request): string | null {
@@ -20,12 +23,21 @@ function extractClientIp(request: Request): string | null {
   return realIp ? realIp.slice(0, 64) : null;
 }
 
+const validSortOptions: Set<ListingSortOption> = new Set([
+  "newest",
+  "price_asc",
+  "price_desc",
+  "quantity_desc",
+]);
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const cropCode = searchParams.get("cropCode") ?? undefined;
     const lga = searchParams.get("lga") ?? undefined;
     const gradeRaw = searchParams.get("grade") ?? undefined;
+    const availabilityRaw = searchParams.get("availability") ?? undefined;
+    const sortRaw = searchParams.get("sort") ?? undefined;
 
     let grade: ProduceGrade | undefined;
     if (gradeRaw) {
@@ -35,13 +47,28 @@ export async function GET(request: Request) {
       }
     }
 
+    let availabilityStatus: AvailabilityStatus | undefined;
+    if (availabilityRaw) {
+      const parsedAvailability = availabilityStatusEnum.safeParse(availabilityRaw);
+      if (parsedAvailability.success) {
+        availabilityStatus = parsedAvailability.data;
+      }
+    }
+
+    let sortBy: ListingSortOption | undefined;
+    if (sortRaw && validSortOptions.has(sortRaw as ListingSortOption)) {
+      sortBy = sortRaw as ListingSortOption;
+    }
+
     const listings = await listActiveListings({
       cropCode,
       lga,
       grade,
+      availabilityStatus,
+      sortBy,
     });
 
-    return ok({ listings });
+    return ok({ listings, totalCount: listings.length });
   } catch (error) {
     return handleApiError(error);
   }
