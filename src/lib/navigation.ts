@@ -1,3 +1,5 @@
+import type { TranslationKeyId } from "@/modules/i18n/base-dictionary";
+
 /**
  * Navigation contract for Tongric's responsive shell:
  * - Mobile (< 768px): Bottom tab bar with 5 core app sections
@@ -13,7 +15,7 @@ export type CoreSectionId =
 
 export interface CoreNavItem {
   id: CoreSectionId;
-  labelKey: string;
+  labelKey: TranslationKeyId;
   defaultLabel: string;
   href: string;
   enabledInCurrentPhase: boolean;
@@ -29,7 +31,7 @@ export const CORE_NAV_ITEMS: readonly CoreNavItem[] = [
   },
   {
     id: "marketplace",
-    labelKey: "nav.marketplace",
+    labelKey: "nav.market",
     defaultLabel: "Market",
     href: "/marketplace",
     enabledInCurrentPhase: false,
@@ -43,7 +45,7 @@ export const CORE_NAV_ITEMS: readonly CoreNavItem[] = [
   },
   {
     id: "logistics",
-    labelKey: "nav.logistics",
+    labelKey: "nav.transport",
     defaultLabel: "Transport",
     href: "/transport",
     enabledInCurrentPhase: false,
@@ -59,7 +61,7 @@ export const CORE_NAV_ITEMS: readonly CoreNavItem[] = [
 
 export const ACCOUNT_NAV_ITEM = {
   id: "account",
-  labelKey: "nav.account",
+  labelKey: "nav.account" as TranslationKeyId,
   defaultLabel: "Account",
   href: "/account",
   enabledInCurrentPhase: false,

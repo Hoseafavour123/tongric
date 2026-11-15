@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { useI18n } from "@/components/i18n/i18n-provider";
 import { Alert } from "@/components/ui";
 
 type NetworkState = "online" | "offline" | "reconnected";
@@ -78,9 +79,12 @@ export interface NetworkStatusBannerProps {
 }
 
 /**
- * Displays a clear banner whenever rural connectivity drops or recovers.
+ * Displays a clear localized banner whenever rural connectivity drops or recovers.
  */
-export function NetworkStatusBanner({ forcedState }: NetworkStatusBannerProps = {}) {
+export function NetworkStatusBanner({
+  forcedState,
+}: NetworkStatusBannerProps = {}) {
+  const { t } = useI18n();
   const liveState = useSyncExternalStore(
     subscribe,
     getSnapshot,
@@ -95,9 +99,8 @@ export function NetworkStatusBanner({ forcedState }: NetworkStatusBannerProps = 
   if (state === "offline") {
     return (
       <div className="mb-4">
-        <Alert tone="warning" title="No internet connection">
-          You are offline. Wait until your mobile data or Wi-Fi returns before
-          submitting changes.
+        <Alert tone="warning" title={t("offline.bannerOfflineTitle")}>
+          {t("offline.bannerOfflineBody")}
         </Alert>
       </div>
     );
@@ -105,10 +108,9 @@ export function NetworkStatusBanner({ forcedState }: NetworkStatusBannerProps = 
 
   return (
     <div className="mb-4">
-      <Alert tone="success" title="Back online">
-        Connection restored. You can retry or continue your task safely.
+      <Alert tone="success" title={t("offline.bannerOnlineTitle")}>
+        {t("offline.bannerOnlineBody")}
       </Alert>
     </div>
   );
 }
-

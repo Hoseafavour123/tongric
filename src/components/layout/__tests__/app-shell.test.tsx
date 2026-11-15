@@ -24,6 +24,7 @@ describe("AppShell navigation", () => {
     expect(html).toContain("Farmer");
     expect(html).toContain("Buyer");
     expect(html).toContain("Account");
+    expect(html).toContain('href="/account"');
     expect(html).toContain("Main Body");
   });
 

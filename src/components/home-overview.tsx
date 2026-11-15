@@ -1,9 +1,14 @@
 "use client";
 
+import Link from "next/link";
+import { FirstVisitLanguagePrompt } from "@/components/i18n/first-visit-language-prompt";
+import { useI18n } from "@/components/i18n/i18n-provider";
+import { LowDataSwitch } from "@/components/layout/low-data-provider";
 import { useWorkspaceMode } from "@/components/layout/workspace-mode-provider";
 import {
   Alert,
   Badge,
+  buttonClasses,
   Card,
   CardContent,
   CardDescription,
@@ -13,83 +18,90 @@ import {
   type StepItem,
 } from "@/components/ui";
 
-const FARMER_STEPS: readonly StepItem[] = [
-  {
-    id: "list",
-    label: "List available harvest",
-    description: "Publish quantity, price, LGA location, and compressed photo.",
-    state: "completed",
-  },
-  {
-    id: "agree",
-    label: "Negotiate & confirm buyer order",
-    description: "Review offers transparently and lock agreed quantity.",
-    state: "current",
-  },
-  {
-    id: "deliver",
-    label: "Coordinate transport & confirm delivery",
-    description: "Track 6 delivery milestones until buyer confirms receipt.",
-    state: "upcoming",
-  },
-];
-
-const BUYER_STEPS: readonly StepItem[] = [
-  {
-    id: "discover",
-    label: "Search produce in Benue communities",
-    description: "Filter verified farmers by crop, LGA, quantity, and price.",
-    state: "completed",
-  },
-  {
-    id: "offer",
-    label: "Submit offer & lock order",
-    description: "Negotiate terms directly with the farmer with clear payment notes.",
-    state: "current",
-  },
-  {
-    id: "receive",
-    label: "Arrange logistics & confirm receipt",
-    description: "Compare transport quotes and track produce to your destination.",
-    state: "upcoming",
-  },
-];
-
 export function HomeOverview() {
   const { mode } = useWorkspaceMode();
+  const { t } = useI18n();
   const isFarmer = mode === "farmer";
+
+  const farmerSteps: readonly StepItem[] = [
+    {
+      id: "list",
+      label: t("home.stepFarmerListLabel"),
+      description: t("home.stepFarmerListDesc"),
+      state: "completed",
+    },
+    {
+      id: "agree",
+      label: t("home.stepFarmerAgreeLabel"),
+      description: t("home.stepFarmerAgreeDesc"),
+      state: "current",
+    },
+    {
+      id: "deliver",
+      label: t("home.stepFarmerDeliverLabel"),
+      description: t("home.stepFarmerDeliverDesc"),
+      state: "upcoming",
+    },
+  ];
+
+  const buyerSteps: readonly StepItem[] = [
+    {
+      id: "discover",
+      label: t("home.stepBuyerSearchLabel"),
+      description: t("home.stepBuyerSearchDesc"),
+      state: "completed",
+    },
+    {
+      id: "offer",
+      label: t("home.stepBuyerOfferLabel"),
+      description: t("home.stepBuyerOfferDesc"),
+      state: "current",
+    },
+    {
+      id: "receive",
+      label: t("home.stepBuyerReceiveLabel"),
+      description: t("home.stepBuyerReceiveDesc"),
+      state: "upcoming",
+    },
+  ];
 
   return (
     <div className="space-y-6">
+      <FirstVisitLanguagePrompt />
+
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <Badge tone="green">
-              {isFarmer ? "Farmer View Active" : "Buyer View Active"}
+              {isFarmer ? t("mode.farmerBadge") : t("mode.buyerBadge")}
             </Badge>
-            <Badge tone="neutral">Benue Pilot MVP · Phase 1</Badge>
+            <Badge tone="neutral">{t("home.pilotBadge")}</Badge>
           </div>
           <CardTitle className="mt-3 text-xl sm:text-2xl">
-            {isFarmer
-              ? "Sell your produce directly and arrange transport"
-              : "Source fresh agricultural produce directly from farmers"}
+            {isFarmer ? t("home.farmerTitle") : t("home.buyerTitle")}
           </CardTitle>
           <CardDescription>
-            {isFarmer
-              ? "List tomatoes, pepper, mangoes, and staples cleanly, compare buyer offers, and track deliveries from farm to buyer."
-              : "Discover verified smallholder supply across Benue State, negotiate transparent orders, and coordinate haulage."}
+            {isFarmer ? t("home.farmerSubtitle") : t("home.buyerSubtitle")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Alert
-            tone="info"
-            title="Foundation active — Marketplace, Orders, Transport & Finance unlock next"
-          >
-            You can switch between <strong>Farmer</strong> and{" "}
-            <strong>Buyer</strong> view using the toggle in the header.
-            Authentication, profiles, listings, logistics, and loan workflows
-            are rolled out sequentially in Phases 2–9.
+          <Alert tone="info" title={t("home.foundationAlertTitle")}>
+            {t("home.foundationAlertBody")}
           </Alert>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/register"
+              className={buttonClasses({ variant: "primary", size: "md" })}
+            >
+              {t("auth.registerPageTitle")}
+            </Link>
+            <Link
+              href="/privacy"
+              className={buttonClasses({ variant: "ghost", size: "md" })}
+            >
+              {t("auth.readPrivacyLink")}
+            </Link>
+          </div>
         </CardContent>
       </Card>
 
@@ -97,45 +109,32 @@ export function HomeOverview() {
         <Card>
           <CardHeader>
             <CardTitle>
-              {isFarmer ? "How Farmer Selling Works" : "How Buyer Sourcing Works"}
+              {isFarmer ? t("home.farmerFlowTitle") : t("home.buyerFlowTitle")}
             </CardTitle>
-            <CardDescription>
-              Core transaction sequence prioritized for Tongric Release 1.
-            </CardDescription>
+            <CardDescription>{t("home.flowSubtitle")}</CardDescription>
           </CardHeader>
           <CardContent>
             <StatusStepper
               ariaLabel={
-                isFarmer ? "Farmer selling steps" : "Buyer sourcing steps"
+                isFarmer ? t("home.farmerFlowTitle") : t("home.buyerFlowTitle")
               }
-              steps={isFarmer ? FARMER_STEPS : BUYER_STEPS}
+              steps={isFarmer ? farmerSteps : buyerSteps}
             />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Mobile-First Navigation</CardTitle>
-            <CardDescription>
-              Built for low-end Android phones and slow rural connectivity.
-            </CardDescription>
+            <CardTitle>{t("home.mobileTitle")}</CardTitle>
+            <CardDescription>{t("home.mobileSubtitle")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-gray-700">
-            <p>
-              On mobile screens, Tongric organizes core sections into five
-              bottom tabs: <strong>Home</strong>, <strong>Market</strong>,{" "}
-              <strong>Orders</strong>, <strong>Transport</strong>, and{" "}
-              <strong>Finance</strong>.
-            </p>
-            <p>
-              Your <strong>Farmer / Buyer</strong> view switch and upcoming{" "}
-              <strong>Account</strong> &amp; <strong>Language</strong> controls
-              stay pinned in the top header so they are reachable from any tab.
-            </p>
+            <p>{t("home.mobileDesc1")}</p>
+            <p>{t("home.mobileDesc2")}</p>
+            <LowDataSwitch className="mt-2" />
           </CardContent>
         </Card>
       </div>
     </div>
   );
 }
-

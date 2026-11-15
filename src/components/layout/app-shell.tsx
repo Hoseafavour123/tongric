@@ -1,3 +1,5 @@
+"use client";
+
 import type { ReactNode } from "react";
 import Link from "next/link";
 import {
@@ -8,6 +10,9 @@ import {
   Truck,
   User,
 } from "lucide-react";
+import { useAuth } from "@/components/auth/auth-provider";
+import { useI18n } from "@/components/i18n/i18n-provider";
+import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { cn } from "@/lib/cn";
 import {
   ACCOUNT_NAV_ITEM,
@@ -32,11 +37,17 @@ export interface AppShellProps {
 
 /**
  * Primary Tongric responsive shell:
- * - Mobile (< 768px): Compact top header (Brand + Farmer/Buyer toggle + Account slot)
+ * - Mobile (< 768px): Compact top header (Brand + Farmer/Buyer toggle + Language + Account)
  *   plus a fixed 5-tab app-like bottom bar (Home, Market, Orders, Transport, Finance).
  * - Desktop (>= 768px): Clean single-row top navigation bar without sidebar bloat.
  */
 export function AppShell({ activeSection = "home", children }: AppShellProps) {
+  const { t } = useI18n();
+  const { user } = useAuth();
+  const accountLabel = user
+    ? user.fullName.trim().split(" ")[0] || user.fullName
+    : t(ACCOUNT_NAV_ITEM.labelKey);
+
   return (
     <div className="min-h-screen bg-white text-gray-900">
       {/* Desktop single-row header */}
@@ -51,13 +62,14 @@ export function AppShell({ activeSection = "home", children }: AppShellProps) {
                 T
               </span>
               <span className="text-lg font-semibold tracking-tight text-gray-900">
-                Tongric
+                {t("common.appName")}
               </span>
             </Link>
 
             <nav aria-label="Primary navigation" className="flex items-center gap-5">
               {CORE_NAV_ITEMS.map((item) => {
                 const isActive = item.id === activeSection;
+                const label = t(item.labelKey);
                 return item.enabledInCurrentPhase ? (
                   <Link
                     key={item.id}
@@ -70,59 +82,60 @@ export function AppShell({ activeSection = "home", children }: AppShellProps) {
                         : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
                     )}
                   >
-                    {item.defaultLabel}
+                    {label}
                   </Link>
                 ) : (
                   <span
                     key={item.id}
                     aria-disabled="true"
-                    title="Available in upcoming phases"
+                    title={t("common.comingSoon")}
                     className="px-2 py-1.5 text-sm text-gray-400"
                   >
-                    {item.defaultLabel}
+                    {label}
                   </span>
                 );
               })}
             </nav>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <WorkspaceModeSwitch />
-            <span
-              aria-disabled="true"
-              title="Account and language arrive in Phases 2–3"
-              className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-gray-200 bg-gray-50 px-3 text-xs font-medium text-gray-400"
+            <LanguageSwitcher />
+            <Link
+              href="/account"
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-green-700/30 bg-green-50 px-3 text-xs font-semibold text-green-900 transition-colors hover:bg-green-100"
             >
-              <User className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>{ACCOUNT_NAV_ITEM.defaultLabel}</span>
-            </span>
+              <User className="h-3.5 w-3.5 text-green-800" aria-hidden="true" />
+              <span>{accountLabel}</span>
+            </Link>
           </div>
         </div>
       </header>
 
       {/* Mobile compact header */}
-      <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-2 border-b border-gray-200 bg-white px-3 sm:px-4 md:hidden">
-        <Link href="/" className="flex shrink-0 items-center gap-2">
+      <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-2 border-b border-gray-200 bg-white px-2.5 sm:px-4 md:hidden">
+        <Link href="/" className="flex shrink-0 items-center gap-1.5">
           <span
             aria-hidden="true"
             className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-green-700 text-xs font-bold text-white"
           >
             T
           </span>
-          <span className="text-base font-semibold tracking-tight text-gray-900">
-            Tongric
+          <span className="text-sm font-semibold tracking-tight text-gray-900 sm:text-base">
+            {t("common.appName")}
           </span>
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <WorkspaceModeSwitch compact />
-          <span
-            aria-label="Account coming in Phase 3"
-            aria-disabled="true"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 bg-gray-50 text-gray-400"
+          <LanguageSwitcher compact />
+          <Link
+            href="/account"
+            aria-label={accountLabel}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-green-700/30 bg-green-50 text-green-900 transition-colors hover:bg-green-100"
           >
-            <User className="h-4 w-4" aria-hidden="true" />
-          </span>
+            <User className="h-4 w-4 text-green-800" aria-hidden="true" />
+          </Link>
         </div>
       </header>
 
@@ -140,6 +153,7 @@ export function AppShell({ activeSection = "home", children }: AppShellProps) {
           {CORE_NAV_ITEMS.map((item) => {
             const Icon = SECTION_ICONS[item.id];
             const isActive = item.id === activeSection;
+            const label = t(item.labelKey);
 
             return (
               <li key={item.id} className="min-w-0">
@@ -159,7 +173,7 @@ export function AppShell({ activeSection = "home", children }: AppShellProps) {
                       )}
                       aria-hidden="true"
                     />
-                    <span className="truncate">{item.defaultLabel}</span>
+                    <span className="truncate">{label}</span>
                   </Link>
                 ) : (
                   <span
@@ -167,7 +181,7 @@ export function AppShell({ activeSection = "home", children }: AppShellProps) {
                     className="flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[11px] text-gray-400"
                   >
                     <Icon className="h-5 w-5 text-gray-300" aria-hidden="true" />
-                    <span className="truncate">{item.defaultLabel}</span>
+                    <span className="truncate">{label}</span>
                   </span>
                 )}
               </li>
@@ -178,4 +192,3 @@ export function AppShell({ activeSection = "home", children }: AppShellProps) {
     </div>
   );
 }
-

@@ -7,6 +7,7 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import { useI18n } from "@/components/i18n/i18n-provider";
 import { cn } from "@/lib/cn";
 import {
   parseWorkspaceMode,
@@ -101,16 +102,18 @@ export function WorkspaceModeSwitch({
   compact?: boolean;
 }) {
   const { mode, setMode } = useWorkspaceMode();
+  const { t } = useI18n();
 
   return (
     <div
       role="group"
-      aria-label="Workspace view mode"
+      aria-label={t("mode.switchAria")}
       className="inline-flex rounded-md border border-gray-300 bg-gray-50 p-0.5"
     >
       {(["farmer", "buyer"] as const).map((option) => {
         const isActive = mode === option;
-        const label = option === "farmer" ? "Farmer" : "Buyer";
+        const label =
+          option === "farmer" ? t("mode.farmer") : t("mode.buyer");
         return (
           <button
             key={option}

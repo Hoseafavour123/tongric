@@ -17,6 +17,7 @@ import {
   FormField,
   Input,
   LoadingSkeleton,
+  LowDataImage,
   Select,
   Spinner,
   StatusStepper,
@@ -204,6 +205,28 @@ export function StyleguideDemo() {
         description="Farmers in Gboko and Makurdi can add tomatoes, pepper, or mangoes in under two minutes."
         action={<Button variant="primary">Add First Listing</Button>}
       />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Low-Data Image Deferral Preview</CardTitle>
+          <CardDescription>
+            Deferred behind Tap-to-Load when Low-Data Mode is active.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <LowDataImage
+            src="/icons/icon-192.png"
+            alt="Tongric produce preview sample"
+            forceLowData
+          />
+          <LowDataImage
+            src="/icons/icon-192.png"
+            alt="Tongric standard preview sample"
+            imgClassName="max-h-36 w-36 border border-gray-200"
+            forceLowData={false}
+          />
+        </CardContent>
+      </Card>
 
       <Dialog
         open={dialogOpen}

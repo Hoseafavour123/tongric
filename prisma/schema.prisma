@@ -7,9 +7,325 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// Review workflow status for multilingual UI strings.
+enum TranslationStatus {
+  DRAFT
+  REVIEWED
+  VALIDATED
+}
+
+/// Primary account role within Tongric. ADMIN cannot self-register publicly.
+enum UserRole {
+  FARMER
+  BUYER
+  TRANSPORT_PROVIDER
+  ADMIN
+}
+
+/// Account lifecycle state enforced during login and protected actions.
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  LOCKED
+}
+
+/// Versioned NDPA 2023 consent categories captured explicitly at registration or preference change.
+enum ConsentType {
+  TERMS_AND_PRIVACY
+  OPTIONAL_UPDATES
+}
+
+/// Verification lifecycle states for market participants and uploaded credentials.
+enum VerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+/// Categorization of produce buyers operating on the platform.
+enum BuyerType {
+  PROCESSOR
+  WHOLESALER
+  RETAILER
+  RESTAURANT_HOTEL
+  INSTITUTIONAL
+}
+
+/// Standardized vehicle categories for agricultural logistics coordination.
+enum VehicleType {
+  MOTORCYCLE_TRICYCLE
+  PICKUP
+  VAN
+  TRUCK
+}
+
+/// Pricing agreement models between buyers/farmers and transport providers.
+enum PricingModel {
+  FIXED_RATE_CARD
+  QUOTE_ON_REQUEST
+}
+
+/// Permissible verification document categories for farmers, buyers, and transporters.
+enum DocumentType {
+  NATIONAL_ID
+  VOTERS_CARD
+  DRIVERS_LICENSE
+  CAC_CERTIFICATE
+  COOPERATIVE_LETTER
+  COMMUNITY_ATTESTATION
+}
+
+/// Lifecycle state of a commercial produce listing.
+enum ListingStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  SOLD_OUT
+  CANCELLED
+}
+
+/// Standardized quality grade for Benue agricultural produce.
+enum ProduceGrade {
+  GRADE_A
+  GRADE_B
+  GRADE_C
+}
+
+/// Harvest availability timeframe for produce listings.
+enum AvailabilityStatus {
+  AVAILABLE_NOW
+  UPCOMING_HARVEST
+}
+
+/// Registered platform identity anchored to canonical Nigerian E.164 phone number.
+model User {
+  id                    String        @id @default(cuid())
+  phoneNumber           String        @unique
+  email                 String?       @unique
+  fullName              String
+  passwordHash          String
+  role                  UserRole
+  accountStatus         AccountStatus @default(ACTIVE)
+  preferredLanguageCode String        @default("en")
+  assistedByUserId      String?
+  lastLoginAt           DateTime?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  assistedBy    User?           @relation("AssistedOnboarding", fields: [assistedByUserId], references: [id], onDelete: SetNull)
+  assistedUsers User[]          @relation("AssistedOnboarding")
+  consents      ConsentRecord[]
+  recoveryCodes RecoveryCode[]
+  sessions         Session[]
+  farmerProfile    FarmerProfile?
+  buyerProfile     BuyerProfile?
+  transportProfile TransportProfile?
+  verificationDocs VerificationDocument[]
+  listings         ProduceListing[]
+
+  @@index([role, accountStatus])
+  @@index([preferredLanguageCode])
+  @@index([assistedByUserId])
+  @@map("users")
+}
+
+/// Immutable timestamped record of user consent under NDPA 2023.
+model ConsentRecord {
+  id            String      @id @default(cuid())
+  userId        String
+  consentType   ConsentType
+  policyVersion String
+  granted       Boolean
+  locale        String
+  ipAddress     String?
+  userAgent     String?
+  grantedAt     DateTime    @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, consentType])
+  @@index([policyVersion])
+  @@map("consent_records")
+}
+
+/// Hashed single-use account recovery codes for rural users without email access.
+model RecoveryCode {
+  id        String    @id @default(cuid())
+  userId    String
+  codeHash  String
+  isUsed    Boolean   @default(false)
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isUsed])
+  @@map("recovery_codes")
+}
+
+/// Revocable authentication sessions anchored to an HTTP-only secure cookie.
+model Session {
+  id          String    @id @default(cuid())
+  userId      String
+  sessionHash String    @unique
+  expiresAt   DateTime
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime  @default(now())
+  revokedAt   DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@map("sessions")
+}
+
+/// Operational farm profile anchoring a farmer to Benue State LGA, community, and crops.
+model FarmerProfile {
+  id                 String             @id @default(cuid())
+  userId             String             @unique @map("user_id")
+  state              String             @default("Benue")
+  lga                String
+  community          String
+  primaryCrops       String[]           @map("primary_crops")
+  cooperativeName    String?            @map("cooperative_name")
+  farmSizeHectares   Decimal?           @map("farm_size_hectares") @db.Decimal(8, 2)
+  verificationStatus VerificationStatus @default(UNVERIFIED) @map("verification_status")
+  verifiedAt         DateTime?          @map("verified_at")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([lga])
+  @@index([verificationStatus])
+  @@map("farmer_profiles")
+}
+
+/// Operational commercial profile anchoring a produce buyer to sourcing needs and location.
+model BuyerProfile {
+  id                 String             @id @default(cuid())
+  userId             String             @unique @map("user_id")
+  businessName       String             @map("business_name")
+  buyerType          BuyerType          @map("buyer_type")
+  state              String             @default("Benue")
+  operatingLga       String             @map("operating_lga")
+  primaryMarket      String?            @map("primary_market")
+  cropsSourced       String[]           @map("crops_sourced")
+  verificationStatus VerificationStatus @default(UNVERIFIED) @map("verification_status")
+  verifiedAt         DateTime?          @map("verified_at")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([operatingLga])
+  @@index([buyerType])
+  @@index([verificationStatus])
+  @@map("buyer_profiles")
+}
+
+/// Operational fleet profile anchoring a transport provider to carrying capacity and service routes.
+model TransportProfile {
+  id                 String             @id @default(cuid())
+  userId             String             @unique @map("user_id")
+  operatorName       String             @map("operator_name")
+  vehicleTypes       VehicleType[]      @map("vehicle_types")
+  maxCapacityKg      Int                @map("max_capacity_kg")
+  operatingLgas      String[]           @map("operating_lgas")
+  isAvailable        Boolean            @default(true) @map("is_available")
+  pricingModel       PricingModel       @default(QUOTE_ON_REQUEST) @map("pricing_model")
+  verificationStatus VerificationStatus @default(UNVERIFIED) @map("verification_status")
+  verifiedAt         DateTime?          @map("verified_at")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([isAvailable])
+  @@index([verificationStatus])
+  @@map("transport_profiles")
+}
+
+/// Encrypted/private verification credentials submitted for identity and market compliance review.
+model VerificationDocument {
+  id               String             @id @default(cuid())
+  userId           String             @map("user_id")
+  documentType     DocumentType       @map("document_type")
+  documentNumber   String?            @map("document_number")
+  fileStoragePath  String             @map("file_storage_path")
+  fileMimeType     String             @map("file_mime_type")
+  fileSizeBytes    Int                @map("file_size_bytes")
+  notes            String?            @map("notes")
+  status           VerificationStatus @default(PENDING) @map("status")
+  reviewedByUserId String?            @map("reviewed_by_user_id")
+  reviewedAt       DateTime?          @map("reviewed_at")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([reviewedAt])
+  @@map("verification_documents")
+}
+
+/// Commercial produce batch offered for sale by a registered farmer or producer.
+model ProduceListing {
+  id                 String             @id @default(cuid())
+  farmerId           String             @map("farmer_id")
+  title              String
+  cropCode           String             @map("crop_code")
+  cropCategory       String             @map("crop_category")
+  grade              ProduceGrade       @default(GRADE_B)
+  quantity           Int
+  unitCode           String             @map("unit_code")
+  estimatedWeightKg  Float              @map("estimated_weight_kg")
+  pricePerUnit       Decimal            @db.Decimal(12, 2) @map("price_per_unit")
+  currency           String             @default("NGN")
+  minOrderQuantity   Int                @default(1) @map("min_order_quantity")
+  isNegotiable       Boolean            @default(true) @map("is_negotiable")
+  availabilityStatus AvailabilityStatus @default(AVAILABLE_NOW) @map("availability_status")
+  harvestDate        DateTime?          @map("harvest_date")
+  state              String             @default("Benue")
+  lga                String
+  community          String
+  description        String?
+  status             ListingStatus      @default(ACTIVE)
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+
+  farmer User           @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  photos ListingPhoto[]
+
+  @@index([farmerId])
+  @@index([cropCode])
+  @@index([lga])
+  @@index([status])
+  @@index([createdAt])
+  @@map("produce_listings")
+}
+
+/// Public product media demonstrating quality and batch condition of produce.
+model ListingPhoto {
+  id              String   @id @default(cuid())
+  listingId       String   @map("listing_id")
+  fileStoragePath String   @map("file_storage_path")
+  publicUrl       String   @map("public_url")
+  mimeType        String   @map("mime_type")
+  sizeBytes       Int      @map("size_bytes")
+  isPrimary       Boolean  @default(false) @map("is_primary")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  listing ProduceListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
+  @@map("listing_photos")
+}
+
 /// Append-only record of security-sensitive, verification, and governance events.
-/// Domain models for translations, users, listings, orders, and logistics are added
-/// incrementally in their respective phases.
 model AuditLog {
   id          String   @id @default(cuid())
   actorUserId String?
@@ -26,3 +342,53 @@ model AuditLog {
   @@map("audit_logs")
 }
 
+/// Supported platform languages configured for pilot and expansion regions.
+model Language {
+  code            String             @id
+  name            String
+  nativeName      String
+  isActive        Boolean            @default(true)
+  isDefault       Boolean            @default(false)
+  isPilotPriority Boolean            @default(false)
+  sortOrder       Int                @default(0)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  entries         TranslationEntry[]
+
+  @@index([isActive, sortOrder])
+  @@map("languages")
+}
+
+/// Authoritative English source keys and translator context metadata.
+model TranslationKey {
+  id          String             @id @default(cuid())
+  namespace   String
+  key         String             @unique
+  description String?
+  defaultText String
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  entries     TranslationEntry[]
+
+  @@index([namespace])
+  @@map("translation_keys")
+}
+
+/// Per-language translation entries gated by native-speaker validation status.
+model TranslationEntry {
+  id               String            @id @default(cuid())
+  translationKeyId String
+  languageCode     String
+  text             String
+  status           TranslationStatus @default(DRAFT)
+  reviewedByName   String?
+  reviewedAt       DateTime?
+  updatedAt        DateTime          @updatedAt
+
+  translationKey TranslationKey @relation(fields: [translationKeyId], references: [id], onDelete: Cascade)
+  language       Language       @relation(fields: [languageCode], references: [code], onDelete: Cascade)
+
+  @@unique([translationKeyId, languageCode])
+  @@index([languageCode, status])
+  @@map("translation_entries")
+}

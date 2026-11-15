@@ -29,6 +29,7 @@ export {
   type TextareaProps,
 } from "./form-field";
 export { LoadingSkeleton, Spinner } from "./skeleton";
+export { LowDataImage, type LowDataImageProps } from "./low-data-image";
 export {
   StatusStepper,
   type StepItem,

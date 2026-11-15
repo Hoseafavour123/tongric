@@ -14,7 +14,8 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "i18n:sync": "node src/modules/i18n/sync.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.6.0",

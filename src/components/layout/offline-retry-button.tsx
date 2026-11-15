@@ -1,9 +1,12 @@
 "use client";
 
 import { RefreshCw } from "lucide-react";
+import { useI18n } from "@/components/i18n/i18n-provider";
 import { Button } from "@/components/ui";
 
 export function OfflineRetryButton() {
+  const { t } = useI18n();
+
   return (
     <Button
       variant="primary"
@@ -14,8 +17,7 @@ export function OfflineRetryButton() {
       }}
     >
       <RefreshCw className="h-4 w-4" aria-hidden="true" />
-      <span>Try Again</span>
+      <span>{t("common.retry")}</span>
     </Button>
   );
 }
-
