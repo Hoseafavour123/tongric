@@ -172,14 +172,6 @@ export function HomeOverview() {
                 alt={HERO_FARMER_IMAGE.alt}
                 loading="eager"
                 className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
-                onError={(e) => {
-                  const target = e.currentTarget;
-                  if (target.src.endsWith(".jpg") || target.src.endsWith(".png")) {
-                    target.src = HERO_FARMER_IMAGE.remoteFallback;
-                  } else {
-                    target.src = HERO_FARMER_IMAGE.svgFallback;
-                  }
-                }}
               />
             </div>
           </div>
@@ -224,14 +216,6 @@ export function HomeOverview() {
                     alt={crop.name}
                     loading="lazy"
                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    onError={(e) => {
-                      const target = e.currentTarget;
-                      if (target.src.endsWith(".jpg") || target.src.endsWith(".png")) {
-                        target.src = crop.remoteFallback;
-                      } else {
-                        target.src = crop.svgFallback;
-                      }
-                    }}
                   />
                 </div>
 

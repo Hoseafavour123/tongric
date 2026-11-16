@@ -1,3 +1,5 @@
+"use client";
+
 import { HomeOverview } from "@/components/home-overview";
 
 export default function HomePage() {
