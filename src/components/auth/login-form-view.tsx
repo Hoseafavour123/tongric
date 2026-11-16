@@ -31,7 +31,7 @@ interface LoginResponseData {
   };
 }
 
-export function LoginFormView({ redirectPath = "/account" }: { redirectPath?: string }) {
+export function LoginFormView({ redirectPath = "/" }: { redirectPath?: string }) {
   const { t, setLocale } = useI18n();
   const router = useRouter();
 
@@ -84,7 +84,7 @@ export function LoginFormView({ redirectPath = "/account" }: { redirectPath?: st
 
       const safeRedirect = redirectPath.startsWith("/") && !redirectPath.startsWith("//")
         ? redirectPath
-        : "/account";
+        : "/";
       router.push(safeRedirect);
       router.refresh();
     } finally {

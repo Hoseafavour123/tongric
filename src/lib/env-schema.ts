@@ -79,9 +79,13 @@ export function isCloudinaryConfigured(env: AppEnv): boolean {
 export function parseEnv(
   source: Record<string, string | undefined> = process.env,
 ): AppEnv {
+  const resolvedAppUrl =
+    source.APP_URL ||
+    (source.VERCEL_URL ? `https://${source.VERCEL_URL}` : undefined);
+
   const result = envSchema.safeParse({
     NODE_ENV: source.NODE_ENV,
-    APP_URL: source.APP_URL,
+    APP_URL: resolvedAppUrl,
     NEXT_PUBLIC_APP_NAME: source.NEXT_PUBLIC_APP_NAME,
     DATABASE_URL: source.DATABASE_URL,
     CLOUDINARY_CLOUD_NAME: source.CLOUDINARY_CLOUD_NAME,

@@ -24,7 +24,7 @@ export const DEMO_ACCOUNTS: readonly DemoAccount[] = [
     phoneNumber: "08088888888",
     role: "ADMIN",
     description: "Full administrative oversight, dispute mediation, user verification, and financial monitoring.",
-    targetRedirect: "/admin",
+    targetRedirect: "/",
   },
   {
     id: "admin",
@@ -33,7 +33,7 @@ export const DEMO_ACCOUNTS: readonly DemoAccount[] = [
     phoneNumber: "08099999999",
     role: "ADMIN",
     description: "System coordinator with complete audit logs and farmer verification review authority.",
-    targetRedirect: "/admin",
+    targetRedirect: "/",
   },
   {
     id: "farmer",
@@ -42,7 +42,7 @@ export const DEMO_ACCOUNTS: readonly DemoAccount[] = [
     phoneNumber: "08011111111",
     role: "FARMER",
     description: "Active farm-gate producer with listed yam/soybeans harvests and pending trade agreements.",
-    targetRedirect: "/market",
+    targetRedirect: "/",
   },
   {
     id: "buyer",
@@ -51,7 +51,7 @@ export const DEMO_ACCOUNTS: readonly DemoAccount[] = [
     phoneNumber: "08022222222",
     role: "BUYER",
     description: "Commercial aggregator with purchase offers and contracted logistics dispatches.",
-    targetRedirect: "/market",
+    targetRedirect: "/",
   },
   {
     id: "transporter",
@@ -60,7 +60,7 @@ export const DEMO_ACCOUNTS: readonly DemoAccount[] = [
     phoneNumber: "08033333333",
     role: "TRANSPORT_PROVIDER",
     description: "Corridor fleet operator with active cargo dispatch and waybill fulfillment runs.",
-    targetRedirect: "/transport",
+    targetRedirect: "/",
   },
 ] as const;
 

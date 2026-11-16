@@ -12,7 +12,7 @@ interface LoginPageProps {
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const resolvedParams = searchParams ? await searchParams : undefined;
-  const redirectPath = resolvedParams?.redirect || "/account";
+  const redirectPath = resolvedParams?.redirect || "/";
 
   return <LoginFormView redirectPath={redirectPath} />;
 }

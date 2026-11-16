@@ -10,6 +10,11 @@ describe("parseEnv", () => {
     expect(parsed.DATABASE_URL).toBeUndefined();
   });
 
+  it("falls back to VERCEL_URL when APP_URL is omitted", () => {
+    const parsed = parseEnv({ VERCEL_URL: "tongric-pilot.vercel.app" });
+    expect(parsed.APP_URL).toBe("https://tongric-pilot.vercel.app");
+  });
+
   it("accepts valid custom values including PostgreSQL URLs", () => {
     const parsed = parseEnv({
       NODE_ENV: "production",
