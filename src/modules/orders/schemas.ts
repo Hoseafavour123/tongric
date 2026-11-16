@@ -220,4 +220,38 @@ export interface OrderDetailSummary extends OrderSummary {
   statusEvents: OrderStatusEventSummary[];
 }
 
+export const updateOrderStatusSchema = z.object({
+  toStatus: orderStatusEnum,
+  note: z
+    .string()
+    .trim()
+    .max(500, "Note must be under 500 characters")
+    .optional()
+    .nullable()
+    .transform((val) => (val && val.trim().length > 0 ? val.trim() : null)),
+});
+
+export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;
+
+export const cancelOrderSchema = z.object({
+  reason: z
+    .string()
+    .trim()
+    .min(5, "Cancellation reason must be at least 5 characters")
+    .max(500, "Cancellation reason must be under 500 characters"),
+});
+
+export type CancelOrderInput = z.infer<typeof cancelOrderSchema>;
+
+export const disputeOrderSchema = z.object({
+  reason: z
+    .string()
+    .trim()
+    .min(5, "Dispute reason must be at least 5 characters")
+    .max(500, "Dispute reason must be under 500 characters"),
+});
+
+export type DisputeOrderInput = z.infer<typeof disputeOrderSchema>;
+
+
 
