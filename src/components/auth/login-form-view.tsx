@@ -18,6 +18,7 @@ import {
 } from "@/components/ui";
 import { resilientFetch } from "@/lib/resilient-fetch";
 import { loginInputSchema } from "@/modules/auth/schemas";
+import { JudgeQuickLogin } from "./judge-quick-login";
 
 interface LoginResponseData {
   user: {
@@ -98,6 +99,9 @@ export function LoginFormView({ redirectPath = "/account" }: { redirectPath?: st
 
   return (
     <div className="mx-auto max-w-md space-y-5">
+      {/* Grant Reviewer & Judge Direct Login Dropdown */}
+      <JudgeQuickLogin />
+
       <Card>
         <CardHeader>
           <CardTitle className="text-xl sm:text-2xl">
@@ -134,7 +138,6 @@ export function LoginFormView({ redirectPath = "/account" }: { redirectPath?: st
             <FormField
               label={t("auth.phoneLabel")}
               required
-              hint={t("auth.phoneHint")}
               error={fieldErrors.phoneNumber}
             >
               {({ id, describedBy, hasError }) => (

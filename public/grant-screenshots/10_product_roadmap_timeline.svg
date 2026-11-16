@@ -1,0 +1,162 @@
+<svg width="390" height="844" viewBox="0 0 390 844" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-opacity="0.12" />
+    </filter>
+    <clipPath id="screenClip">
+      <rect x="0" y="0" width="390" height="844" rx="42" />
+    </clipPath>
+    <clipPath id="heroClip">
+      <rect x="0" y="0" width="112" height="112" rx="10" />
+    </clipPath>
+    <clipPath id="cropThumbClip">
+      <rect x="0" y="0" width="104" height="68" rx="8" />
+    </clipPath>
+    <clipPath id="marketCardClip">
+      <rect x="0" y="0" width="96" height="84" rx="8" />
+    </clipPath>
+    <clipPath id="detailHeroClip">
+      <rect x="0" y="0" width="358" height="160" rx="12" />
+    </clipPath>
+    <clipPath id="carrierTruckClip">
+      <rect x="0" y="0" width="358" height="92" rx="10" />
+    </clipPath>
+  </defs>
+
+  <!-- Phone Shell -->
+  <rect x="0" y="0" width="390" height="844" rx="42" fill="#ffffff" filter="url(#shadow)" stroke="#cbd5e1" stroke-width="2.5"/>
+
+  <g clip-path="url(#screenClip)">
+    <!-- Status Bar -->
+    <rect x="0" y="0" width="390" height="44" fill="#ffffff"/>
+    <text x="34" y="29" font-size="14" font-weight="600" fill="#0f172a">09:41</text>
+    <rect x="135" y="10" width="120" height="24" rx="12" fill="#0f172a"/>
+    <circle cx="236" cy="22" r="5" fill="#1e293b"/>
+    
+    <!-- Status Icons -->
+    <g transform="translate(320, 18)" fill="#0f172a">
+      <rect x="16" y="2" width="22" height="11" rx="3" fill="none" stroke="#0f172a" stroke-width="1.5"/>
+      <rect x="18" y="4" width="14" height="7" rx="1.5" fill="#0f172a"/>
+      <path d="M39 5.5v4" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M9 11a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+      <path d="M4.5 7.5a5 5 0 0 1 6 0" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <rect x="-1" y="9" width="2" height="4" rx="0.5"/>
+      <rect x="2" y="6" width="2" height="7" rx="0.5"/>
+      <rect x="5" y="3" width="2" height="10" rx="0.5"/>
+    </g>
+
+    <!-- Top Navigation Bar -->
+    <rect x="0" y="44" width="390" height="52" fill="#ffffff" stroke="#f1f5f9" stroke-width="1"/>
+    
+    <!-- Logo & Brand -->
+    <g transform="translate(16, 56)">
+      <rect x="0" y="0" width="28" height="28" rx="6" fill="#15803d"/>
+      <path d="M7 20V9l7-4 7 4v11" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="14" cy="14" r="3" fill="#ffffff"/>
+      <text x="36" y="20" font-size="17" font-weight="800" fill="#15803d" letter-spacing="-0.3">Tongric</text>
+    </g>
+
+    <!-- Right Navbar Controls: Muted Language, Icon-Only Notifications, Icon-Only Profile -->
+    <g transform="translate(232, 54)">
+      <!-- Muted Language Switcher (opacity 75%) -->
+      <g opacity="0.75" transform="translate(0, 0)">
+        <rect x="0" y="0" width="46" height="30" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="23" y="19" font-size="11" font-weight="600" fill="#475569" text-anchor="middle">🌐 EN</text>
+      </g>
+
+      <!-- Icon-Only Notifications (no text) with Badge -->
+      <g transform="translate(52, 0)">
+        <rect x="0" y="0" width="30" height="30" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+        <path d="M15 8a4 4 0 0 0-4 4v3l-2 2h12l-2-2v-3a4 4 0 0 0-4-4z" fill="none" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M13.5 20a1.5 1.5 0 0 0 3 0" fill="none" stroke="#334155" stroke-width="1.6"/>
+        
+          <circle cx="23" cy="7" r="5" fill="#dc2626"/>
+          <text x="23" y="10" font-size="8" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+        
+      </g>
+
+      <!-- Icon-Only Profile Button (no text) -->
+      <g transform="translate(88, 0)">
+        <circle cx="15" cy="15" r="15" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1"/>
+        <circle cx="15" cy="11" r="4.5" fill="#15803d"/>
+        <path d="M8.5 22c0-3.5 3-5 6.5-5s6.5 1.5 6.5 5" fill="#15803d"/>
+      </g>
+    </g>
+
+    
+
+    <!-- Body Content Area -->
+    <g transform="translate(0, 98)">
+      
+  <!-- Roadmap Banner Card -->
+  <g transform="translate(16, 12)">
+    <rect x="0" y="0" width="358" height="96" rx="14" fill="#0f172a"/>
+    <g transform="translate(14, 16)">
+      <rect x="0" y="0" width="124" height="20" rx="4" fill="#1e293b"/>
+      <text x="62" y="14" font-size="9" font-weight="700" fill="#4ade80" text-anchor="middle">GRANT MILESTONES</text>
+      
+      <text x="0" y="42" font-size="17" font-weight="800" fill="#ffffff">Strategic Product Roadmap</text>
+      <text x="0" y="60" font-size="11" fill="#94a3b8">Post-grant technical milestones &amp; scale execution</text>
+    </g>
+  </g>
+
+  <!-- Timeline Cards -->
+  <g transform="translate(16, 120)">
+    <!-- Phase 1: Completed MVP -->
+    <g transform="translate(0, 0)">
+      <rect x="0" y="0" width="358" height="98" rx="12" fill="#ffffff" stroke="#86efac" stroke-width="1.5"/>
+      <g transform="translate(14, 14)">
+        <rect x="0" y="0" width="80" height="18" rx="4" fill="#dcfce7"/>
+        <text x="40" y="13" font-size="9" font-weight="700" fill="#15803d" text-anchor="middle">CURRENT MVP</text>
+        <text x="90" y="13" font-size="11" font-weight="800" fill="#0f172a">Phase 1: Benue Direct Trade Pilot</text>
+        <text x="0" y="38" font-size="11" fill="#334155">• Farm-gate listing &amp; structured offer negotiation</text>
+        <text x="0" y="52" font-size="11" fill="#334155">• Official dispatch waybill &amp; 4-digit handover PIN</text>
+        <text x="0" y="66" font-size="11" fill="#15803d" font-weight="700">✓ Production ready &amp; fully verified</text>
+      </g>
+    </g>
+
+    <!-- Phase 2: USSD / Offline Integration -->
+    <g transform="translate(0, 110)">
+      <rect x="0" y="0" width="358" height="98" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+      <g transform="translate(14, 14)">
+        <rect x="0" y="0" width="70" height="18" rx="4" fill="#f1f5f9"/>
+        <text x="35" y="13" font-size="9" font-weight="700" fill="#475569" text-anchor="middle">Q1 2027</text>
+        <text x="80" y="13" font-size="11" font-weight="800" fill="#0f172a">Phase 2: USSD &amp; SMS Trade Fallback</text>
+        <text x="0" y="38" font-size="11" fill="#334155">• Non-smartphone USSD channel (*384*44#)</text>
+        <text x="0" y="52" font-size="11" fill="#334155">• Tiv, Idoma, and Hausa interactive voice response</text>
+        <text x="0" y="66" font-size="11" fill="#2563eb" font-weight="700">Grant Target: Cooperative USSD Gateway</text>
+      </g>
+    </g>
+
+    <!-- Phase 3: Barter Clearinghouse & Credit -->
+    <g transform="translate(0, 220)">
+      <rect x="0" y="0" width="358" height="98" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+      <g transform="translate(14, 14)">
+        <rect x="0" y="0" width="70" height="18" rx="4" fill="#f1f5f9"/>
+        <text x="35" y="13" font-size="9" font-weight="700" fill="#475569" text-anchor="middle">Q2 2027</text>
+        <text x="80" y="13" font-size="11" font-weight="800" fill="#0f172a">Phase 3: Barter Clearing &amp; Input Credit</text>
+        <text x="0" y="38" font-size="11" fill="#334155">• Automated algorithmic commodity exchange ratios</text>
+        <text x="0" y="52" font-size="11" fill="#334155">• Cooperative input lending with direct harvest clearing</text>
+        <text x="0" y="66" font-size="11" fill="#b45309" font-weight="700">Grant Target: Zero-Custody Credit Pilot</text>
+      </g>
+    </g>
+
+    <!-- Phase 4: State-wide Expansion -->
+    <g transform="translate(0, 330)">
+      <rect x="0" y="0" width="358" height="98" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+      <g transform="translate(14, 14)">
+        <rect x="0" y="0" width="70" height="18" rx="4" fill="#f1f5f9"/>
+        <text x="35" y="13" font-size="9" font-weight="700" fill="#475569" text-anchor="middle">Q3-Q4 2027</text>
+        <text x="80" y="13" font-size="11" font-weight="800" fill="#0f172a">Phase 4: North-Central State Expansion</text>
+        <text x="0" y="38" font-size="11" fill="#334155">• Scale across 23 Benue LGAs + Nasarawa &amp; Plateau</text>
+        <text x="0" y="52" font-size="11" fill="#334155">• Perishable cold-chain logistics telematics tracking</text>
+        <text x="0" y="66" font-size="11" fill="#15803d" font-weight="700">Grant Target: 10,000+ Onboarded Smallholders</text>
+      </g>
+    </g>
+  </g>
+
+    </g>
+
+    
+  </g>
+</svg>

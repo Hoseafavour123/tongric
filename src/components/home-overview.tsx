@@ -4,23 +4,13 @@ import Link from "next/link";
 import {
   ArrowRight,
   ClipboardList,
-  MapPin,
   Plus,
-  Scale,
-  ShieldCheck,
-  ShoppingBag,
-  Sprout,
   Store,
-  Truck,
-  UserCheck,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/auth-provider";
-import { FirstVisitLanguagePrompt } from "@/components/i18n/first-visit-language-prompt";
 import { useI18n } from "@/components/i18n/i18n-provider";
-import { LowDataSwitch } from "@/components/layout/low-data-provider";
 import { useWorkspaceMode } from "@/components/layout/workspace-mode-provider";
 import {
-  Badge,
   buttonClasses,
   Card,
   CardContent,
@@ -30,7 +20,7 @@ import {
   StatusStepper,
   type StepItem,
 } from "@/components/ui";
-import { PRODUCE_CROP_CATALOG } from "@/modules/i18n/catalogs";
+import { CROP_VISUALS, HERO_FARMER_IMAGE } from "@/lib/crop-visuals";
 
 export function HomeOverview() {
   const { mode } = useWorkspaceMode();
@@ -41,20 +31,20 @@ export function HomeOverview() {
   const farmerSteps: readonly StepItem[] = [
     {
       id: "list",
-      label: t("home.stepFarmerListLabel"),
-      description: t("home.stepFarmerListDesc"),
+      label: "List Produce",
+      description: "Post harvest lot with Grade & Unit pricing",
       state: "completed",
     },
     {
       id: "agree",
-      label: t("home.stepFarmerAgreeLabel"),
-      description: t("home.stepFarmerAgreeDesc"),
+      label: "Agree Terms",
+      description: "Accept buyer offer & assign transport",
       state: "current",
     },
     {
       id: "deliver",
-      label: t("home.stepFarmerDeliverLabel"),
-      description: t("home.stepFarmerDeliverDesc"),
+      label: "Delivery & PIN Handover",
+      description: "Verify farm-gate release with 4-digit PIN",
       state: "upcoming",
     },
   ];
@@ -62,298 +52,226 @@ export function HomeOverview() {
   const buyerSteps: readonly StepItem[] = [
     {
       id: "discover",
-      label: t("home.stepBuyerSearchLabel"),
-      description: t("home.stepBuyerSearchDesc"),
+      label: "Discover Lots",
+      description: "Filter by 23 Benue LGAs and crop grade",
       state: "completed",
     },
     {
       id: "offer",
-      label: t("home.stepBuyerOfferLabel"),
-      description: t("home.stepBuyerOfferDesc"),
+      label: "Make Offer",
+      description: "Negotiate price, volume, and corridor haulage",
       state: "current",
     },
     {
       id: "receive",
-      label: t("home.stepBuyerReceiveLabel"),
-      description: t("home.stepBuyerReceiveDesc"),
+      label: "Confirm Receipt",
+      description: "Inspect produce, verify delivery PIN, rate carrier",
       state: "upcoming",
     },
   ];
 
-  const popularCrops = PRODUCE_CROP_CATALOG.slice(0, 6);
-
   return (
     <div className="space-y-6">
-      <FirstVisitLanguagePrompt />
+      {/* Visual Split Hero Section */}
+      <Card className="overflow-hidden border border-green-200/90 bg-white shadow-xs">
+        <div className="grid grid-cols-1 items-center md:grid-cols-12">
+          {/* Left Column: Minimal Punchy Headline & Primary Actions */}
+          <div className="space-y-4 p-6 sm:p-8 md:col-span-7">
+            <div>
+              <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 sm:text-3xl lg:text-4xl">
+                {isAuthenticated && user
+                  ? `Welcome back, ${user.fullName.split(" ")[0]}!`
+                  : isFarmer
+                    ? t("home.farmerTitle")
+                    : t("home.buyerTitle")}
+              </h1>
 
-      {/* Hero / Overview Banner */}
-      <Card className="border border-green-200 bg-white shadow-xs">
-        <CardHeader className="pb-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <Badge tone="green">
-                {isFarmer ? t("mode.farmerBadge") : t("mode.buyerBadge")}
-              </Badge>
-              {isAuthenticated && user ? (
-                <Badge tone="neutral" className="capitalize">
-                  {user.role.toLowerCase()}
-                </Badge>
-              ) : null}
+              <p className="mt-2 text-sm text-gray-600 sm:text-base leading-relaxed">
+                {isFarmer
+                  ? t("home.farmerSubtitle")
+                  : t("home.buyerSubtitle")}
+              </p>
             </div>
-            <Badge tone="neutral">{t("home.pilotBadge")}</Badge>
-          </div>
 
-          <CardTitle className="mt-3 text-2xl font-extrabold tracking-tight text-gray-900 sm:text-3xl">
-            {isAuthenticated && user
-              ? `Welcome back, ${user.fullName.split(" ")[0]}!`
-              : isFarmer
-                ? t("home.farmerTitle")
-                : t("home.buyerTitle")}
-          </CardTitle>
+            {/* 1-2 Key Actions Only */}
+            <div className="flex flex-wrap items-center gap-3 pt-1">
+              {isFarmer ? (
+                <>
+                  <Link
+                    href="/market/create"
+                    className={buttonClasses({
+                      variant: "primary",
+                      size: "md",
+                      className: "min-h-[44px] flex items-center gap-2 px-5 font-bold shadow-xs",
+                    })}
+                  >
+                    <Plus className="h-5 w-5" />
+                    <span>Sell Produce / List Batch</span>
+                  </Link>
+                  <Link
+                    href="/market"
+                    className={buttonClasses({
+                      variant: "secondary",
+                      size: "md",
+                      className: "min-h-[44px] flex items-center gap-2 px-4",
+                    })}
+                  >
+                    <Store className="h-4 w-4" />
+                    <span>Browse Marketplace</span>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/market"
+                    className={buttonClasses({
+                      variant: "primary",
+                      size: "md",
+                      className: "min-h-[44px] flex items-center gap-2 px-5 font-bold shadow-xs",
+                    })}
+                  >
+                    <Store className="h-5 w-5" />
+                    <span>Explore Produce Market</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <Link
+                    href="/orders"
+                    className={buttonClasses({
+                      variant: "secondary",
+                      size: "md",
+                      className: "min-h-[44px] flex items-center gap-2 px-4",
+                    })}
+                  >
+                    <ClipboardList className="h-4 w-4" />
+                    <span>My Purchase Orders</span>
+                  </Link>
+                </>
+              )}
 
-          <CardDescription className="text-sm text-gray-600 sm:text-base">
-            {isFarmer ? t("home.farmerSubtitle") : t("home.buyerSubtitle")}
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent className="space-y-5 pt-0">
-          {/* Main Action CTAs */}
-          <div className="flex flex-wrap items-center gap-3">
-            {isFarmer ? (
-              <>
+              {!isAuthenticated && (
                 <Link
-                  href="/market/create"
-                  className={buttonClasses({
-                    variant: "primary",
-                    size: "md",
-                    className: "min-h-[44px] flex items-center gap-2 px-5",
-                  })}
-                >
-                  <Plus className="h-5 w-5" />
-                  <span>Sell Produce / List Batch</span>
-                </Link>
-                <Link
-                  href="/market"
-                  className={buttonClasses({
-                    variant: "secondary",
-                    size: "md",
-                    className: "min-h-[44px] flex items-center gap-2",
-                  })}
-                >
-                  <Store className="h-4 w-4" />
-                  <span>Browse Marketplace</span>
-                </Link>
-                <Link
-                  href="/orders"
+                  href="/register"
                   className={buttonClasses({
                     variant: "ghost",
                     size: "md",
-                    className: "min-h-[44px] flex items-center gap-2",
+                    className: "min-h-[44px]",
                   })}
                 >
-                  <ClipboardList className="h-4 w-4" />
-                  <span>My Orders &amp; Offers</span>
+                  Create Account
                 </Link>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/market"
-                  className={buttonClasses({
-                    variant: "primary",
-                    size: "md",
-                    className: "min-h-[44px] flex items-center gap-2 px-5",
-                  })}
-                >
-                  <Store className="h-5 w-5" />
-                  <span>Explore Produce Market</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-                <Link
-                  href="/orders"
-                  className={buttonClasses({
-                    variant: "secondary",
-                    size: "md",
-                    className: "min-h-[44px] flex items-center gap-2",
-                  })}
-                >
-                  <ClipboardList className="h-4 w-4" />
-                  <span>My Purchase Orders</span>
-                </Link>
-              </>
-            )}
-
-            {!isAuthenticated && (
-              <Link
-                href="/register"
-                className={buttonClasses({
-                  variant: "ghost",
-                  size: "md",
-                  className: "min-h-[44px]",
-                })}
-              >
-                {t("auth.registerPageTitle")}
-              </Link>
-            )}
-          </div>
-
-          {/* Quick Flow Shortcuts */}
-          <div className="border-t border-gray-100 pt-3">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-              Quick Management
-            </p>
-            <div className="flex flex-wrap gap-2 text-xs">
-              <Link
-                href={isFarmer ? "/profile" : "/profile/buyer"}
-                className="inline-flex min-h-[36px] items-center gap-1.5 rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 font-medium text-gray-700 hover:bg-gray-100"
-              >
-                {isFarmer ? (
-                  <Sprout className="h-3.5 w-3.5 text-green-700" />
-                ) : (
-                  <ShoppingBag className="h-3.5 w-3.5 text-green-700" />
-                )}
-                <span>{isFarmer ? "My Farm Profile" : "Buyer Sourcing Profile"}</span>
-              </Link>
-
-              <Link
-                href="/profile/verify"
-                className="inline-flex min-h-[36px] items-center gap-1.5 rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 font-medium text-gray-700 hover:bg-gray-100"
-              >
-                <ShieldCheck className="h-3.5 w-3.5 text-green-700" />
-                <span>Verification &amp; ID Upload</span>
-              </Link>
-
-              <Link
-                href="/transport"
-                className="inline-flex min-h-[36px] items-center gap-1.5 rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 font-medium text-gray-700 hover:bg-gray-100"
-              >
-                <Truck className="h-3.5 w-3.5 text-green-700" />
-                <span>Logistics &amp; Transport Hub</span>
-              </Link>
-
-              <Link
-                href="/finance"
-                className="inline-flex min-h-[36px] items-center gap-1.5 rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 font-medium text-gray-700 hover:bg-gray-100"
-              >
-                <UserCheck className="h-3.5 w-3.5 text-green-700" />
-                <span>Section 19 Payment Policy</span>
-              </Link>
+              )}
             </div>
           </div>
-        </CardContent>
+
+          {/* Right Column: High-Res Farmer & Agricultural Imagery */}
+          <div className="p-4 sm:p-6 md:col-span-5 flex justify-center">
+            <div className="relative aspect-4/3 w-full max-w-sm overflow-hidden rounded-2xl border border-green-200/90 bg-green-50 shadow-sm">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={HERO_FARMER_IMAGE.localPath}
+                alt={HERO_FARMER_IMAGE.alt}
+                loading="eager"
+                className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  if (target.src.endsWith(".jpg") || target.src.endsWith(".png")) {
+                    target.src = HERO_FARMER_IMAGE.remoteFallback;
+                  } else {
+                    target.src = HERO_FARMER_IMAGE.svgFallback;
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </div>
       </Card>
 
-      {/* Benue Priority Crops Fast-Discovery */}
+      {/* Benue State Agricultural Produce — Horizontal Scroll Display */}
       <Card className="border border-gray-200 bg-white">
-        <CardHeader className="pb-2">
+        <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-bold text-gray-900">
-              Benue State Agricultural Produce
-            </CardTitle>
+            <div>
+              <CardTitle className="text-lg font-extrabold text-gray-900 sm:text-xl">
+                Benue State Agricultural Produce
+              </CardTitle>
+              <CardDescription className="text-xs text-gray-600 mt-0.5">
+                Swipe across staple crops to view active harvest lots from verified local growers.
+              </CardDescription>
+            </div>
             <Link
               href="/market"
-              className="text-xs font-semibold text-green-700 hover:text-green-900 hover:underline flex items-center gap-1"
+              className="inline-flex min-h-[36px] items-center gap-1 text-xs font-bold text-green-800 hover:text-green-950 hover:underline"
             >
-              <span>View All</span>
-              <ArrowRight className="h-3 w-3" />
+              <span>View All Lots</span>
+              <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-          <CardDescription className="text-xs text-gray-600">
-            Select a priority crop to discover live batches from verified local producers.
-          </CardDescription>
         </CardHeader>
+
         <CardContent className="pt-1">
-          <div className="flex flex-wrap gap-2">
-            {popularCrops.map((crop) => (
+          <div className="flex gap-3.5 overflow-x-auto pb-3 pt-1 scrollbar-none snap-x snap-mandatory">
+            {CROP_VISUALS.map((crop) => (
               <Link
                 key={crop.code}
                 href={`/market?crop=${crop.code}`}
-                className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-800 transition-colors hover:border-green-600 hover:bg-green-50 hover:text-green-950"
+                className="group flex w-40 sm:w-48 shrink-0 snap-start flex-col overflow-hidden rounded-xl border border-gray-200 bg-white transition-all hover:border-green-600 hover:shadow-md"
               >
-                <span>{t(crop.labelKey)}</span>
-                {crop.isPerishable && (
-                  <span className="rounded bg-amber-100 px-1 py-0.2 text-[10px] font-medium text-amber-800">
-                    Perishable
-                  </span>
-                )}
+                {/* Crop Photo with Fallbacks */}
+                <div className="relative aspect-4/3 w-full overflow-hidden bg-gray-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={crop.localPath}
+                    alt={crop.name}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      if (target.src.endsWith(".jpg") || target.src.endsWith(".png")) {
+                        target.src = crop.remoteFallback;
+                      } else {
+                        target.src = crop.svgFallback;
+                      }
+                    }}
+                  />
+                </div>
+
+                {/* Crop Name & Category Only (No tags) */}
+                <div className="flex items-center justify-between p-3">
+                  <div>
+                    <h3 className="text-xs sm:text-sm font-bold text-gray-900 group-hover:text-green-800 transition-colors line-clamp-1">
+                      {crop.name}
+                    </h3>
+                    <p className="text-[11px] text-gray-500 mt-0.5">{crop.category}</p>
+                  </div>
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-50 text-green-700 group-hover:bg-green-700 group-hover:text-white transition-colors">
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </div>
+                </div>
               </Link>
             ))}
           </div>
         </CardContent>
       </Card>
 
-      {/* Stepper & Low-Data Guidance */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="border border-gray-200 bg-white">
-          <CardHeader>
-            <CardTitle className="text-base font-bold text-gray-900">
-              {isFarmer ? t("home.farmerFlowTitle") : t("home.buyerFlowTitle")}
-            </CardTitle>
-            <CardDescription className="text-xs text-gray-600">
-              {t("home.flowSubtitle")}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <StatusStepper
-              ariaLabel={
-                isFarmer ? t("home.farmerFlowTitle") : t("home.buyerFlowTitle")
-              }
-              steps={isFarmer ? farmerSteps : buyerSteps}
-            />
-          </CardContent>
-        </Card>
-
-        <Card className="border border-gray-200 bg-white">
-          <CardHeader>
-            <CardTitle className="text-base font-bold text-gray-900">
-              {t("home.mobileTitle")}
-            </CardTitle>
-            <CardDescription className="text-xs text-gray-600">
-              {t("home.mobileSubtitle")}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 text-xs text-gray-700">
-            <p>{t("home.mobileDesc1")}</p>
-            <p>{t("home.mobileDesc2")}</p>
-            <div className="pt-2">
-              <LowDataSwitch />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Benue Pilot Trust & Integrity Badges */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-3.5">
-          <MapPin className="h-5 w-5 shrink-0 text-green-700" />
-          <div className="text-xs">
-            <h4 className="font-bold text-gray-900">23 Benue LGAs</h4>
-            <p className="text-gray-600 mt-0.5">
-              Direct farm-gate aggregation in Makurdi, Gboko, Otukpo, and rural farming hubs.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-3.5">
-          <Scale className="h-5 w-5 shrink-0 text-green-700" />
-          <div className="text-xs">
-            <h4 className="font-bold text-gray-900">3-Tier Quality Grading</h4>
-            <p className="text-gray-600 mt-0.5">
-              Standardized Grade A (Premium), Grade B (Market), and Grade C (Bulk Processing).
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-3.5">
-          <ShieldCheck className="h-5 w-5 shrink-0 text-green-700" />
-          <div className="text-xs">
-            <h4 className="font-bold text-gray-900">Section 19 Zero Custody</h4>
-            <p className="text-gray-600 mt-0.5">
-              Safe, direct settlement between Buyer and Farmer with verifiable digital trade receipts.
-            </p>
-          </div>
-        </div>
-      </div>
+      {/* Clean 3-Step Simple Flow Stepper (Minimal & Clear) */}
+      <Card className="border border-gray-200 bg-white">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-bold text-gray-900">
+            {isFarmer ? "Simple 3-Step Farmer Flow" : "Simple 3-Step Buyer Flow"}
+          </CardTitle>
+          <CardDescription className="text-xs text-gray-600">
+            {isFarmer
+              ? "How commercial agricultural sales operate on Tongric from farm gate to payment."
+              : "How produce sourcing operates on Tongric from enquiry to delivery inspection."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-2">
+          <StatusStepper
+            ariaLabel={isFarmer ? "Simple 3-Step Farmer Flow" : "Simple 3-Step Buyer Flow"}
+            steps={isFarmer ? farmerSteps : buyerSteps}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

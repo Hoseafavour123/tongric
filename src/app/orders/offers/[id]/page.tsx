@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/layout/app-shell";
 import { Card, CardContent, EmptyState, buttonClasses } from "@/components/ui";
 import { getServerSession } from "@/modules/auth/guards";
 import { getCommercialOffer } from "@/modules/orders";
@@ -32,42 +31,38 @@ export default async function OfferDetailPage({ params }: OfferDetailPageProps) 
 
   if (!offer) {
     return (
-      <AppShell>
-        <div className="mx-auto max-w-4xl px-4 py-12">
-          <Card className="border border-gray-200 bg-white">
-            <CardContent className="p-12 text-center">
-              <EmptyState
-                title="Offer not found or access denied"
-                description="This purchase offer does not exist or you do not have permission to view this negotiation thread."
-                action={
-                  <Link
-                    href="/orders"
-                    className={buttonClasses({
-                      variant: "primary",
-                      className: "min-h-[44px] mt-4",
-                    })}
-                  >
-                    Back to Orders
-                  </Link>
-                }
-              />
-            </CardContent>
-          </Card>
-        </div>
-      </AppShell>
+      <div className="mx-auto max-w-4xl px-4 py-12">
+        <Card className="border border-gray-200 bg-white">
+          <CardContent className="p-12 text-center">
+            <EmptyState
+              title="Offer not found or access denied"
+              description="This purchase offer does not exist or you do not have permission to view this negotiation thread."
+              action={
+                <Link
+                  href="/orders"
+                  className={buttonClasses({
+                    variant: "primary",
+                    className: "min-h-[44px] mt-4",
+                  })}
+                >
+                  Back to Orders
+                </Link>
+              }
+            />
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <AppShell>
-      <div className="mx-auto max-w-5xl px-4 py-6">
-        <OfferThreadView
-          offer={offer}
-          currentUserId={session.user.id}
-          currentUserRole={session.user.role}
-        />
-      </div>
-    </AppShell>
+    <div className="mx-auto max-w-5xl px-4 py-6">
+      <OfferThreadView
+        offer={offer}
+        currentUserId={session.user.id}
+        currentUserRole={session.user.role}
+      />
+    </div>
   );
 }
 

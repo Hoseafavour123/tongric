@@ -33,6 +33,7 @@ enum AccountStatus {
 enum ConsentType {
   TERMS_AND_PRIVACY
   OPTIONAL_UPDATES
+  FINANCIAL_DATA_SHARING
 }
 
 /// Verification lifecycle states for market participants and uploaded credentials.
@@ -128,6 +129,54 @@ enum OrderStatus {
   DISPUTED
 }
 
+/// Categorization of in-app activity notifications and low-bandwidth SMS alerts.
+enum NotificationCategory {
+  OFFER_ACTIVITY
+  ORDER_STATUS
+  TRANSPORT_DISPATCH
+  SYSTEM_ALERT
+}
+
+/// Permissible item types for farmer-to-farmer agricultural exchange.
+enum ExchangeItemType {
+  CROP
+  SEED
+  TOOL
+  EQUIPMENT
+}
+
+/// Lifecycle state of a farmer barter exchange listing.
+enum ExchangeListingStatus {
+  OPEN
+  AGREED
+  COMPLETED
+  CANCELLED
+}
+
+/// Lifecycle state of an exchange offer submitted by a peer farmer.
+enum ExchangeOfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+/// Lifecycle state of a confirmed barter agreement between two farmers.
+enum ExchangeAgreementStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+/// Processing lifecycle of a simple credit demonstration application.
+enum LoanApplicationStatus {
+  SUBMITTED
+  UNDER_PARTNER_REVIEW
+  ADDITIONAL_INFO_REQUESTED
+  APPROVED
+  DECLINED
+}
+
 /// Registered platform identity anchored to canonical Nigerian E.164 phone number.
 model User {
   id                    String        @id @default(cuid())
@@ -159,7 +208,16 @@ model User {
   offerMessages    OfferMessage[]
   farmerOrders     Order[]                @relation("FarmerOrders")
   buyerOrders      Order[]                @relation("BuyerOrders")
+  transporterOrders Order[]               @relation("TransporterOrders")
   orderStatusEvents OrderStatusEvent[]
+  transporterReviews CarrierReview[]      @relation("TransporterReviews")
+  submittedReviews   CarrierReview[]      @relation("ReviewerReviews")
+  notifications      Notification[]
+  exchangeListings   ExchangeListing[]
+  exchangeOffers     ExchangeOffer[]
+  farmerAAgreements  ExchangeAgreement[]    @relation("FarmerAAgreements")
+  farmerBAgreements  ExchangeAgreement[]    @relation("FarmerBAgreements")
+  loanApplications   LoanApplication[]
 
   @@index([role, accountStatus])
   @@index([preferredLanguageCode])
@@ -180,6 +238,7 @@ model ConsentRecord {
   grantedAt     DateTime    @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  loanApplications LoanApplication[]
 
   @@index([userId, consentType])
   @@index([policyVersion])
@@ -426,6 +485,7 @@ model Order {
   listingId              String          @map("listing_id")
   farmerId               String          @map("farmer_id")
   buyerId                String          @map("buyer_id")
+  transporterId          String?         @map("transporter_id")
   cropCode               String          @map("crop_code")
   quantity               Int
   unitCode               String          @map("unit_code")
@@ -436,6 +496,13 @@ model Order {
   fulfillmentMode        FulfillmentMode @map("fulfillment_mode")
   destinationLocation    String?         @map("destination_location")
   proposedCollectionDate DateTime?       @map("proposed_collection_date")
+  corridorRoute          String?         @map("corridor_route")
+  estimatedFreightFee    Decimal?        @map("estimated_freight_fee") @db.Decimal(12, 2)
+  waybillNumber          String?         @unique @map("waybill_number")
+  pickupPin              String?         @map("pickup_pin")
+  deliveryPin            String?         @map("delivery_pin")
+  pickupVerifiedAt       DateTime?       @map("pickup_verified_at")
+  deliveryVerifiedAt     DateTime?       @map("delivery_verified_at")
   status                 OrderStatus     @default(CONFIRMED)
   paymentArrangementNote String?         @map("payment_arrangement_note")
   cancellationReason     String?         @map("cancellation_reason")
@@ -446,14 +513,41 @@ model Order {
   listing      ProduceListing     @relation(fields: [listingId], references: [id], onDelete: Restrict)
   farmer       User               @relation("FarmerOrders", fields: [farmerId], references: [id], onDelete: Restrict)
   buyer        User               @relation("BuyerOrders", fields: [buyerId], references: [id], onDelete: Restrict)
+  transporter  User?              @relation("TransporterOrders", fields: [transporterId], references: [id], onDelete: SetNull)
   statusEvents OrderStatusEvent[]
+  carrierReviews CarrierReview[]
 
   @@index([farmerId, status])
   @@index([buyerId, status])
+  @@index([transporterId, status])
   @@index([listingId])
   @@index([status])
   @@index([createdAt])
   @@map("orders")
+}
+
+/// Post-delivery carrier review & 5-star performance rating.
+model CarrierReview {
+  id                 String   @id @default(cuid())
+  orderId            String   @map("order_id")
+  transporterId      String   @map("transporter_id")
+  reviewerId         String   @map("reviewer_id")
+  rating             Int      // 1 to 5 stars
+  timelinessScore    Int      @default(5) @map("timeliness_score") // 1 to 5 stars
+  cargoCareScore     Int      @default(5) @map("cargo_care_score") // 1 to 5 stars
+  communicationScore Int      @default(5) @map("communication_score") // 1 to 5 stars
+  comment            String?  @db.Text
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  order       Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  transporter User  @relation("TransporterReviews", fields: [transporterId], references: [id], onDelete: Cascade)
+  reviewer    User  @relation("ReviewerReviews", fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, reviewerId])
+  @@index([transporterId, rating])
+  @@index([reviewerId])
+  @@map("carrier_reviews")
 }
 
 /// Immutable audit record of state transitions in an order's lifecycle.
@@ -488,6 +582,150 @@ model AuditLog {
   @@index([entityType, entityId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+/// In-app activity alert and low-bandwidth notification for market participants.
+model Notification {
+  id         String               @id @default(cuid())
+  userId     String               @map("user_id")
+  title      String
+  body       String               @db.Text
+  category   NotificationCategory @default(SYSTEM_ALERT)
+  entityType String?              @map("entity_type")
+  entityId   String?              @map("entity_id")
+  actionUrl  String?              @map("action_url")
+  isRead     Boolean              @default(false) @map("is_read")
+  readAt     DateTime?            @map("read_at")
+  createdAt  DateTime             @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+/// Farmer barter listing for agricultural commodities, seeds, or tools.
+model ExchangeListing {
+  id                 String                @id @default(cuid())
+  ownerFarmerId      String                @map("owner_farmer_id")
+  offeredItemType    ExchangeItemType      @default(CROP) @map("offered_item_type")
+  offeredCropId      String?               @map("offered_crop_id")
+  offeredTitle       String                @map("offered_title")
+  offeredDescription String                @db.Text @map("offered_description")
+  offeredQty         Float                 @map("offered_qty")
+  offeredUnit        String                @map("offered_unit")
+  desiredDescription String                @db.Text @map("desired_description")
+  desiredQty         Float?                @map("desired_qty")
+  desiredUnit        String?               @map("desired_unit")
+  locationLga        String                @map("location_lga")
+  status             ExchangeListingStatus @default(OPEN)
+  createdAt          DateTime              @default(now()) @map("created_at")
+  updatedAt          DateTime              @updatedAt @map("updated_at")
+
+  ownerFarmer User                @relation(fields: [ownerFarmerId], references: [id], onDelete: Cascade)
+  offers      ExchangeOffer[]
+  agreements  ExchangeAgreement[]
+
+  @@index([ownerFarmerId, status])
+  @@index([status, locationLga])
+  @@map("exchange_listings")
+}
+
+/// Farmer barter offer proposal submitted against an active exchange listing.
+model ExchangeOffer {
+  id                     String              @id @default(cuid())
+  listingId              String              @map("listing_id")
+  proposerFarmerId       String              @map("proposer_farmer_id")
+  offeredItemDescription String              @db.Text @map("offered_item_description")
+  offeredQty             Float               @map("offered_qty")
+  offeredUnit            String              @map("offered_unit")
+  message                String?             @db.Text
+  status                 ExchangeOfferStatus @default(PENDING)
+  createdAt              DateTime            @default(now()) @map("created_at")
+  updatedAt              DateTime            @updatedAt @map("updated_at")
+
+  listing        ExchangeListing     @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  proposerFarmer User                @relation(fields: [proposerFarmerId], references: [id], onDelete: Cascade)
+  agreements     ExchangeAgreement[]
+
+  @@index([listingId, status])
+  @@index([proposerFarmerId, status])
+  @@map("exchange_offers")
+}
+
+/// Confirmed barter exchange agreement between two verified farming parties.
+model ExchangeAgreement {
+  id                  String                  @id @default(cuid())
+  listingId           String                  @map("listing_id")
+  offerId             String                  @map("offer_id")
+  farmerAId           String                  @map("farmer_a_id")
+  farmerBId           String                  @map("farmer_b_id")
+  termsSummary        String                  @db.Text @map("terms_summary")
+  farmerAConfirmedAt  DateTime?               @map("farmer_a_confirmed_at")
+  farmerBConfirmedAt  DateTime?               @map("farmer_b_confirmed_at")
+  status              ExchangeAgreementStatus @default(ACTIVE)
+  createdAt           DateTime                @default(now()) @map("created_at")
+  updatedAt           DateTime                @updatedAt @map("updated_at")
+
+  listing ExchangeListing @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  offer   ExchangeOffer   @relation(fields: [offerId], references: [id], onDelete: Restrict)
+  farmerA User            @relation("FarmerAAgreements", fields: [farmerAId], references: [id], onDelete: Restrict)
+  farmerB User            @relation("FarmerBAgreements", fields: [farmerBId], references: [id], onDelete: Restrict)
+
+  @@index([farmerAId])
+  @@index([farmerBId])
+  @@index([status])
+  @@map("exchange_agreements")
+}
+
+/// Cooperative or development partner financing product shown in the pilot directory.
+model FinancingProduct {
+  id                  String            @id @default(cuid())
+  partnerName         String            @map("partner_name")
+  title               String
+  description         String            @db.Text
+  minAmountNgn        Int               @map("min_amount_ngn")
+  maxAmountNgn        Int               @map("max_amount_ngn")
+  interestRateSummary String            @map("interest_rate_summary")
+  repaymentTerms      String            @map("repayment_terms")
+  eligibilityText     String            @db.Text @map("eligibility_text")
+  requiredDocuments   Json              @map("required_documents")
+  isDemoProduct       Boolean           @default(true) @map("is_demo_product")
+  isActive            Boolean           @default(true) @map("is_active")
+  createdAt           DateTime          @default(now()) @map("created_at")
+  updatedAt           DateTime          @updatedAt @map("updated_at")
+
+  applications LoanApplication[]
+
+  @@index([isActive])
+  @@map("financing_products")
+}
+
+/// Consented credit demonstration application referencing verified Tongric commercial history.
+model LoanApplication {
+  id                             String                @id @default(cuid())
+  referenceCode                  String                @unique @map("reference_code")
+  farmerId                       String                @map("farmer_id")
+  productId                      String                @map("product_id")
+  requestedAmountNgn             Int                   @map("requested_amount_ngn")
+  purpose                        String                @db.Text
+  consentRecordId                String                @map("consent_record_id")
+  transactionSummarySnapshotJson Json                  @map("transaction_summary_snapshot_json")
+  documentKeys                   Json                  @map("document_keys")
+  status                         LoanApplicationStatus @default(SUBMITTED)
+  partnerNote                    String?               @db.Text @map("partner_note")
+  createdAt                      DateTime              @default(now()) @map("created_at")
+  updatedAt                      DateTime              @updatedAt @map("updated_at")
+
+  farmer        User             @relation(fields: [farmerId], references: [id], onDelete: Restrict)
+  product       FinancingProduct @relation(fields: [productId], references: [id], onDelete: Restrict)
+  consentRecord ConsentRecord    @relation(fields: [consentRecordId], references: [id], onDelete: Restrict)
+
+  @@index([farmerId, status])
+  @@index([productId, status])
+  @@index([referenceCode])
+  @@map("loan_applications")
 }
 
 /// Supported platform languages configured for pilot and expansion regions.

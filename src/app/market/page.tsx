@@ -1,12 +1,11 @@
 import Link from "next/link";
 import {
-  Badge,
   buttonClasses,
   Card,
   CardContent,
   EmptyState,
 } from "@/components/ui";
-import { Plus, MapPin, Calendar, Scale, ShieldCheck } from "lucide-react";
+import { Plus, MapPin } from "lucide-react";
 import {
   listActiveListings,
   produceGradeEnum,
@@ -18,6 +17,7 @@ import {
 import { getServerSession } from "@/modules/auth/guards";
 import { ProduceFilterBar } from "@/components/marketplace/produce-filter-bar";
 import { LowDataImage } from "@/components/ui/low-data-image";
+import { getCropVisual } from "@/lib/crop-visuals";
 
 export const dynamic = "force-dynamic";
 
@@ -173,8 +173,6 @@ export default async function MarketPage({ searchParams }: MarketPageProps) {
                 item.photos.find((p) => p.isPrimary)?.publicUrl ||
                 item.photos[0]?.publicUrl;
 
-              const isVerified = item.farmerVerificationStatus === "VERIFIED";
-
               return (
                 <Link
                   key={item.id}
@@ -182,7 +180,7 @@ export default async function MarketPage({ searchParams }: MarketPageProps) {
                   className="group block focus:outline-none focus:ring-2 focus:ring-green-600 rounded-lg"
                 >
                   <Card className="border border-gray-200 bg-white overflow-hidden flex flex-col h-full group-hover:border-green-600 group-hover:shadow-md transition-all">
-                    {/* Photo or placeholder */}
+                    {/* Produce Photo with Fallback (No Tags/Badges) */}
                     <div className="relative h-48 w-full bg-gray-100 flex items-center justify-center overflow-hidden">
                       {primaryPhoto ? (
                         <LowDataImage
@@ -192,111 +190,62 @@ export default async function MarketPage({ searchParams }: MarketPageProps) {
                           imgClassName="h-full w-full object-cover group-hover:scale-102 transition-transform duration-200"
                         />
                       ) : (
-                        <span className="text-sm font-bold text-gray-500 uppercase tracking-wider">
-                          {item.cropCode}
-                        </span>
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                          src={getCropVisual(item.cropCode).localPath}
+                          alt={item.title}
+                          loading="lazy"
+                          className="h-full w-full object-cover group-hover:scale-102 transition-transform duration-200"
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            const visual = getCropVisual(item.cropCode);
+                            if (target.src.endsWith(".jpg") || target.src.endsWith(".png")) {
+                              target.src = visual.remoteFallback;
+                            } else {
+                              target.src = visual.svgFallback;
+                            }
+                          }}
+                        />
                       )}
-
-                      {/* Grade Badge */}
-                      <div className="absolute top-2 left-2 pointer-events-none">
-                        <Badge
-                          tone={
-                            item.grade === "GRADE_A"
-                              ? "green"
-                              : item.grade === "GRADE_B"
-                                ? "neutral"
-                                : "amber"
-                          }
-                          className="text-xs font-bold shadow-xs bg-white/95"
-                        >
-                          {item.grade.replace("_", " ")}
-                        </Badge>
-                      </div>
-
-                      {/* Availability Badge */}
-                      <div className="absolute top-2 right-2 pointer-events-none">
-                        <span
-                          className={`text-xs px-2 py-0.5 rounded-full font-semibold shadow-xs ${
-                            item.availabilityStatus === "AVAILABLE_NOW"
-                              ? "bg-green-100 text-green-900 border border-green-200"
-                              : "bg-amber-100 text-amber-900 border border-amber-200"
-                          }`}
-                        >
-                          {item.availabilityStatus === "AVAILABLE_NOW"
-                            ? "Available Now"
-                            : "Upcoming Harvest"}
-                        </span>
-                      </div>
                     </div>
 
+                    {/* Clean Essential Information Only */}
                     <CardContent className="p-4 flex-1 flex flex-col justify-between space-y-3">
-                      <div className="space-y-1.5">
+                      <div className="space-y-2">
+                        {/* 1. Produce Name */}
                         <h2 className="font-bold text-base text-gray-900 line-clamp-1 group-hover:text-green-800 transition-colors">
                           {item.title}
                         </h2>
 
-                        {/* Pricing */}
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-xl font-extrabold text-green-800">
-                            ₦{item.pricePerUnit.toLocaleString("en-US")}
+                        {/* 2. Price */}
+                        <div className="text-xl font-extrabold text-green-800">
+                          ₦{item.pricePerUnit.toLocaleString("en-US")}{" "}
+                          <span className="text-xs font-semibold text-gray-500">
+                            / {item.unitCode}
                           </span>
-                          <span className="text-xs text-gray-600 font-semibold">
-                            per {item.unitCode}
-                          </span>
-                          {item.isNegotiable && (
-                            <span className="text-[11px] text-green-700 bg-green-50 px-1.5 py-0.5 rounded font-medium border border-green-200">
-                              Negotiable
-                            </span>
-                          )}
                         </div>
 
-                        {/* Quantity & Weight */}
-                        <div className="flex items-center gap-4 text-xs text-gray-700 pt-1">
-                          <span>
-                            Qty: <strong>{item.quantity.toLocaleString("en-US")} {item.unitCode}s</strong>
-                          </span>
-                          {item.estimatedWeightKg > 0 && (
-                            <span className="flex items-center gap-1">
-                              <Scale className="h-3.5 w-3.5 text-gray-500" />
-                              ~{item.estimatedWeightKg.toLocaleString("en-US")} kg
-                            </span>
-                          )}
+                        {/* 3. Quantity */}
+                        <div className="text-xs text-gray-700">
+                          Quantity: <strong>{item.quantity.toLocaleString("en-US")} {item.unitCode}s</strong>
                         </div>
 
-                        {/* Location */}
-                        <div className="flex items-center gap-1.5 text-xs text-gray-600 pt-1">
-                          <MapPin className="h-3.5 w-3.5 text-gray-500 shrink-0" />
+                        {/* 4. Location */}
+                        <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                          <MapPin className="h-3.5 w-3.5 text-gray-400 shrink-0" />
                           <span className="truncate">
-                            {item.community}, {item.lga} LGA, Benue
+                            {item.community}, {item.lga} LGA
                           </span>
                         </div>
-
-                        {/* Harvest Date if upcoming */}
-                        {item.availabilityStatus === "UPCOMING_HARVEST" &&
-                          item.harvestDate && (
-                            <div className="flex items-center gap-1.5 text-xs text-amber-900 bg-amber-50 p-1.5 rounded">
-                              <Calendar className="h-3.5 w-3.5 shrink-0 text-amber-700" />
-                              <span>Ready around: {item.harvestDate}</span>
-                            </div>
-                          )}
                       </div>
 
+                      {/* 5. Farmer Name & Details Prompt */}
                       <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-xs text-gray-600">
-                        <div className="flex items-center gap-1">
-                          <span className="truncate max-w-[120px]">
-                            {item.farmerName || "Farmer"}
-                          </span>
-                          {isVerified && (
-                            <span title="Verified Farmer" className="inline-flex">
-                              <ShieldCheck
-                                className="h-3.5 w-3.5 text-green-700 shrink-0"
-                                aria-hidden="true"
-                              />
-                            </span>
-                          )}
-                        </div>
-                        <span className="font-medium text-gray-500">
-                          MOQ: {item.minOrderQuantity} {item.unitCode}
+                        <span className="truncate">
+                          Farmer: <strong>{item.farmerName || "Farmer"}</strong>
+                        </span>
+                        <span className="font-semibold text-green-800 group-hover:underline">
+                          View details →
                         </span>
                       </div>
                     </CardContent>

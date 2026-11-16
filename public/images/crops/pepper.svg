@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <rect width="400" height="300" fill="#ffedd5" />
+  <g transform="translate(120, 50)">
+    <!-- Hot Pepper 1 (Atarodo) -->
+    <path d="M40,30 Q30,80 50,130 Q70,90 80,40 Z" fill="#ea580c" />
+    <path d="M45,35 Q35,80 52,120 Q68,85 75,45 Z" fill="#f97316" />
+    <path d="M55,30 Q60,10 70,5" stroke="#15803d" stroke-width="6" fill="none" stroke-linecap="round" />
+    <!-- Hot Pepper 2 -->
+    <path d="M90,50 Q80,100 110,140 Q130,100 125,55 Z" fill="#c2410c" />
+    <path d="M95,55 Q85,98 108,132 Q122,95 120,60 Z" fill="#ea580c" />
+    <path d="M105,50 Q110,30 118,22" stroke="#166534" stroke-width="6" fill="none" stroke-linecap="round" />
+  </g>
+  <rect x="20" y="235" width="360" height="45" rx="8" fill="#ffffff" fill-opacity="0.9" />
+  <text x="200" y="263" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#9a3412" text-anchor="middle">Red Habanero Pepper (Atarodo)</text>
+</svg>
+

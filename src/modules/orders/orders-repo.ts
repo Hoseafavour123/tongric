@@ -6,6 +6,7 @@ import type {
   OfferStatus,
   OrderSummary,
   OrderDetailSummary,
+  WaybillSummary,
 } from "./schemas.ts";
 
 export interface CreateOfferData extends CreateOfferInput {
@@ -79,5 +80,36 @@ export interface OrdersRepository {
     userId: string,
     filter?: OrdersFilterOptions,
   ): Promise<OrderSummary[]>;
+  updateOrderStatus(
+    orderId: string,
+    toStatus: string,
+    changedById: string,
+    note?: string | null,
+  ): Promise<OrderDetailSummary>;
+  cancelOrder(
+    orderId: string,
+    reason: string,
+    changedById: string,
+  ): Promise<{
+    order: OrderDetailSummary;
+    restoredQuantity: number;
+    listingReactivated: boolean;
+  }>;
+  disputeOrder(
+    orderId: string,
+    reason: string,
+    changedById: string,
+  ): Promise<OrderDetailSummary>;
+  verifyPickupPin(
+    orderId: string,
+    pin: string,
+    actorUserId: string,
+  ): Promise<OrderDetailSummary>;
+  verifyDeliveryPin(
+    orderId: string,
+    pin: string,
+    actorUserId: string,
+  ): Promise<OrderDetailSummary>;
+  getWaybillByOrderId(orderId: string): Promise<WaybillSummary | null>;
 }
 

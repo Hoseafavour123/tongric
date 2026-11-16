@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <rect width="400" height="300" fill="#fef08a" />
+  <g transform="translate(120, 60)">
+    <!-- Mango Fruit -->
+    <path d="M50,40 C10,90 40,150 90,140 C130,130 140,80 110,40 C85,10 65,15 50,40 Z" fill="#f59e0b" />
+    <path d="M50,40 C20,80 40,130 75,135 C55,100 50,60 65,35 Z" fill="#ef4444" opacity="0.8" />
+    <!-- Leaf -->
+    <path d="M85,25 Q115,5 140,15 Q120,35 85,25 Z" fill="#15803d" />
+  </g>
+  <rect x="20" y="235" width="360" height="45" rx="8" fill="#ffffff" fill-opacity="0.9" />
+  <text x="200" y="263" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#854d0e" text-anchor="middle">Benue Orchard Mangoes</text>
+</svg>
+

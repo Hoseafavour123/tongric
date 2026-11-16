@@ -3,11 +3,18 @@ import type { OrdersRepository, OrderAuditInput, OrdersFilterOptions } from "./o
 import {
   createOfferSchema,
   respondOfferSchema,
+  updateOrderStatusSchema,
+  cancelOrderSchema,
+  disputeOrderSchema,
+  verifyPickupPinSchema,
+  verifyDeliveryPinSchema,
   type CommercialOfferSummary,
   type CommercialOfferDetailSummary,
   type OfferStatus,
+  type OrderStatus,
   type OrderSummary,
   type OrderDetailSummary,
+  type WaybillSummary,
 } from "./schemas.ts";
 
 export interface RespondOfferResult {
@@ -342,5 +349,310 @@ export async function listOrdersWithRepo(
 ): Promise<OrderSummary[]> {
   return repo.listOrdersByUser(actor.id, filter);
 }
+
+const ALLOWED_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  CONFIRMED: ["TRANSPORT_REQUESTED", "COLLECTED", "CANCELLED", "DISPUTED"],
+  TRANSPORT_REQUESTED: ["TRANSPORT_ASSIGNED", "COLLECTED", "CANCELLED", "DISPUTED"],
+  TRANSPORT_ASSIGNED: ["COLLECTED", "DISPUTED"],
+  COLLECTED: ["IN_TRANSIT", "DELIVERED", "DISPUTED"],
+  IN_TRANSIT: ["DELIVERED", "DISPUTED"],
+  DELIVERED: ["COMPLETED", "DISPUTED"],
+  COMPLETED: ["DISPUTED"],
+  CANCELLED: [],
+  DISPUTED: [
+    "CONFIRMED",
+    "TRANSPORT_REQUESTED",
+    "TRANSPORT_ASSIGNED",
+    "COLLECTED",
+    "IN_TRANSIT",
+    "DELIVERED",
+    "COMPLETED",
+    "CANCELLED",
+  ],
+};
+
+export async function updateOrderStatusWithRepo(
+  repo: OrdersRepository,
+  actor: OrderActor,
+  orderId: string,
+  rawInput: unknown,
+): Promise<OrderDetailSummary> {
+  const parsed = updateOrderStatusSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    const firstIssue = parsed.error.issues[0];
+    throw new ValidationError(firstIssue?.message ?? "Invalid status update details");
+  }
+
+  const order = await repo.getOrderById(orderId);
+  if (!order) {
+    throw new NotFoundError("Order not found");
+  }
+
+  const isAdmin = actor.role === "ADMIN";
+  const isParty = actor.id === order.buyerId || actor.id === order.farmerId;
+  const isTransporter = actor.role === "TRANSPORTER";
+
+  if (!isAdmin && !isParty && !isTransporter) {
+    throw new ForbiddenError("You are not authorized to update this order");
+  }
+
+  const { toStatus, note } = parsed.data;
+
+  if (order.status === toStatus) {
+    throw new ValidationError(`Order is already in status ${toStatus}`);
+  }
+
+  if (order.status === "CANCELLED") {
+    throw new ValidationError("Cancelled orders cannot undergo status transitions");
+  }
+
+  if (order.status === "COMPLETED" && toStatus !== "DISPUTED") {
+    throw new ValidationError("Completed orders cannot undergo status transitions");
+  }
+
+  if (order.status === "DISPUTED" && !isAdmin) {
+    throw new ForbiddenError("Only administrators can resolve a disputed order");
+  }
+
+  const allowedNext = ALLOWED_STATUS_TRANSITIONS[order.status] ?? [];
+  if (!isAdmin && !allowedNext.includes(toStatus)) {
+    throw new ValidationError(
+      `Cannot transition order from ${order.status} to ${toStatus}`,
+    );
+  }
+
+  if (toStatus === "COMPLETED" && actor.id !== order.buyerId && !isAdmin) {
+    throw new ForbiddenError(
+      "Only the buyer or an administrator can confirm delivery and mark order completed",
+    );
+  }
+
+  return repo.updateOrderStatus(orderId, toStatus, actor.id, note);
+}
+
+export async function cancelOrderWithRepo(
+  repo: OrdersRepository,
+  actor: OrderActor,
+  orderId: string,
+  rawInput: unknown,
+): Promise<{
+  order: OrderDetailSummary;
+  restoredQuantity: number;
+  listingReactivated: boolean;
+}> {
+  const parsed = cancelOrderSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    const firstIssue = parsed.error.issues[0];
+    throw new ValidationError(firstIssue?.message ?? "Invalid cancellation details");
+  }
+
+  const order = await repo.getOrderById(orderId);
+  if (!order) {
+    throw new NotFoundError("Order not found");
+  }
+
+  const isAdmin = actor.role === "ADMIN";
+  const isParty = actor.id === order.buyerId || actor.id === order.farmerId;
+
+  if (!isAdmin && !isParty) {
+    throw new ForbiddenError("You are not authorized to cancel this order");
+  }
+
+  if (order.status === "CANCELLED") {
+    throw new ValidationError("Order is already cancelled");
+  }
+
+  if (order.status === "COMPLETED") {
+    throw new ValidationError(
+      "Completed orders cannot be cancelled. Please contact support or report a dispute.",
+    );
+  }
+
+  if (order.status === "DISPUTED" && !isAdmin) {
+    throw new ForbiddenError(
+      "Only administrators can cancel an order under active dispute",
+    );
+  }
+
+  // Pre-collection cancellation restriction: once produce is collected, transit is active
+  if (
+    order.status === "COLLECTED" ||
+    order.status === "IN_TRANSIT" ||
+    order.status === "DELIVERED"
+  ) {
+    throw new ValidationError(
+      "Orders cannot be cancelled once produce has been collected or dispatched. Please report a dispute instead.",
+    );
+  }
+
+  return repo.cancelOrder(orderId, parsed.data.reason, actor.id);
+}
+
+export async function disputeOrderWithRepo(
+  repo: OrdersRepository,
+  actor: OrderActor,
+  orderId: string,
+  rawInput: unknown,
+): Promise<OrderDetailSummary> {
+  const parsed = disputeOrderSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    const firstIssue = parsed.error.issues[0];
+    throw new ValidationError(firstIssue?.message ?? "Invalid dispute details");
+  }
+
+  const order = await repo.getOrderById(orderId);
+  if (!order) {
+    throw new NotFoundError("Order not found");
+  }
+
+  const isAdmin = actor.role === "ADMIN";
+  const isParty = actor.id === order.buyerId || actor.id === order.farmerId;
+
+  if (!isAdmin && !isParty) {
+    throw new ForbiddenError("You are not authorized to report a dispute on this order");
+  }
+
+  if (order.status === "DISPUTED") {
+    throw new ValidationError("This order is already under active dispute review");
+  }
+
+  if (order.status === "CANCELLED") {
+    throw new ValidationError("Cancelled orders cannot be disputed");
+  }
+
+  return repo.disputeOrder(orderId, parsed.data.reason, actor.id);
+}
+
+export async function verifyPickupPinWithRepo(
+  repo: OrdersRepository,
+  actor: OrderActor,
+  orderId: string,
+  rawInput: unknown,
+): Promise<OrderDetailSummary> {
+  const parsed = verifyPickupPinSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    const firstIssue = parsed.error.issues[0];
+    throw new ValidationError(firstIssue?.message ?? "Invalid pickup PIN format");
+  }
+
+  const order = await repo.getOrderById(orderId);
+  if (!order) {
+    throw new NotFoundError("Order not found");
+  }
+
+  const isAdmin = actor.role === "ADMIN";
+  const isAuthorizedCarrierOrBuyer = order.transporterId
+    ? actor.id === order.transporterId
+    : actor.id === order.buyerId;
+
+  if (!isAdmin && !isAuthorizedCarrierOrBuyer) {
+    throw new ForbiddenError(
+      "Only the assigned carrier or authorized collection party can verify farm-gate pickup",
+    );
+  }
+
+  if (order.status === "CANCELLED") {
+    throw new ValidationError("Cannot verify pickup for a cancelled order");
+  }
+
+  if (order.status === "DISPUTED") {
+    throw new ValidationError("Cannot verify pickup while order is in active dispute review");
+  }
+
+  if (
+    order.pickupVerifiedAt ||
+    order.status === "COLLECTED" ||
+    order.status === "IN_TRANSIT" ||
+    order.status === "DELIVERED" ||
+    order.status === "COMPLETED"
+  ) {
+    throw new ValidationError("Produce collection has already been verified for this order");
+  }
+
+  return repo.verifyPickupPin(orderId, parsed.data.pin, actor.id);
+}
+
+export async function verifyDeliveryPinWithRepo(
+  repo: OrdersRepository,
+  actor: OrderActor,
+  orderId: string,
+  rawInput: unknown,
+): Promise<OrderDetailSummary> {
+  const parsed = verifyDeliveryPinSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    const firstIssue = parsed.error.issues[0];
+    throw new ValidationError(firstIssue?.message ?? "Invalid delivery PIN format");
+  }
+
+  const order = await repo.getOrderById(orderId);
+  if (!order) {
+    throw new NotFoundError("Order not found");
+  }
+
+  const isAdmin = actor.role === "ADMIN";
+  const isAuthorizedCarrierOrFarmer = order.transporterId
+    ? actor.id === order.transporterId
+    : actor.id === order.farmerId;
+
+  if (!isAdmin && !isAuthorizedCarrierOrFarmer) {
+    throw new ForbiddenError(
+      "Only the assigned carrier or delivering party can verify dropoff handover",
+    );
+  }
+
+  if (order.status === "CANCELLED") {
+    throw new ValidationError("Cannot verify delivery for a cancelled order");
+  }
+
+  if (order.status === "DISPUTED") {
+    throw new ValidationError("Cannot verify delivery while order is in active dispute review");
+  }
+
+  if (
+    order.deliveryVerifiedAt ||
+    order.status === "DELIVERED" ||
+    order.status === "COMPLETED"
+  ) {
+    throw new ValidationError("Delivery handover has already been verified for this order");
+  }
+
+  if (!order.pickupVerifiedAt && order.status !== "COLLECTED" && order.status !== "IN_TRANSIT") {
+    throw new ValidationError(
+      "Produce must be verified as collected from the farm gate before delivery handover can be verified",
+    );
+  }
+
+  return repo.verifyDeliveryPin(orderId, parsed.data.pin, actor.id);
+}
+
+export async function getWaybillWithRepo(
+  repo: OrdersRepository,
+  actor: OrderActor,
+  orderId: string,
+): Promise<WaybillSummary> {
+  const order = await repo.getOrderById(orderId);
+  if (!order) {
+    throw new NotFoundError("Order not found");
+  }
+
+  const isAdmin = actor.role === "ADMIN";
+  const isParty =
+    actor.id === order.farmerId ||
+    actor.id === order.buyerId ||
+    (order.transporterId != null && actor.id === order.transporterId);
+
+  if (!isAdmin && !isParty) {
+    throw new ForbiddenError("You are not authorized to access this dispatch waybill");
+  }
+
+  const waybill = await repo.getWaybillByOrderId(orderId);
+  if (!waybill) {
+    throw new NotFoundError("Dispatch waybill not found");
+  }
+
+  return waybill;
+}
+
+
 
 

@@ -11,10 +11,11 @@ import {
   Store,
   Truck,
   User,
+  Sprout,
+  ArrowLeftRight,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/auth-provider";
 import { useI18n } from "@/components/i18n/i18n-provider";
-import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { cn } from "@/lib/cn";
 import {
   ACCOUNT_NAV_ITEM,
@@ -23,6 +24,8 @@ import {
 } from "@/lib/navigation";
 import { NetworkStatusBanner } from "./network-status-banner";
 import { WorkspaceModeSwitch } from "./workspace-mode-provider";
+import { NotificationsDialog } from "@/components/notifications/notifications-dialog";
+import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 
 const SECTION_ICONS: Record<CoreSectionId, typeof Home> = {
   home: Home,
@@ -54,7 +57,7 @@ export function AppShell({ activeSection: activeSectionProp, children }: AppShel
     if (pathname.startsWith("/market")) return "marketplace";
     if (pathname.startsWith("/orders")) return "orders";
     if (pathname.startsWith("/transport")) return "logistics";
-    if (pathname.startsWith("/finance")) return "finance";
+    if (pathname.startsWith("/finance") || pathname.startsWith("/exchange")) return "finance";
     return "home";
   }
 
@@ -114,25 +117,32 @@ export function AppShell({ activeSection: activeSectionProp, children }: AppShel
             </nav>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             {user?.role === "ADMIN" && (
               <Link
-                href="/admin/verifications"
-                className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-900 transition-colors hover:bg-amber-100"
-                title="Admin Verification Queue"
+                href="/admin"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-amber-300 bg-amber-50 text-amber-900 transition-colors hover:bg-amber-100"
+                title="Admin Console"
+                aria-label="Admin Console"
               >
-                <ShieldCheck className="h-3.5 w-3.5 text-amber-700" />
-                <span>Admin Review</span>
+                <ShieldCheck className="h-4 w-4 text-amber-700" />
               </Link>
             )}
             <WorkspaceModeSwitch />
-            <LanguageSwitcher />
+            {/* Language switcher present in muted styling */}
+            <div className="opacity-75 hover:opacity-100 transition-opacity">
+              <LanguageSwitcher compact />
+            </div>
+            {/* Notifications icon-only */}
+            {user && <NotificationsDialog compact />}
+            {/* Profile icon-only */}
             <Link
               href="/account"
-              className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-green-700/30 bg-green-50 px-3 text-xs font-semibold text-green-900 transition-colors hover:bg-green-100"
+              aria-label={accountLabel}
+              title={accountLabel}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-green-700/30 bg-green-50 text-green-900 transition-colors hover:bg-green-100"
             >
-              <User className="h-3.5 w-3.5 text-green-800" aria-hidden="true" />
-              <span>{accountLabel}</span>
+              <User className="h-4 w-4 text-green-800" aria-hidden="true" />
             </Link>
           </div>
         </div>
@@ -155,25 +165,76 @@ export function AppShell({ activeSection: activeSectionProp, children }: AppShel
         <div className="flex items-center gap-1.5">
           {user?.role === "ADMIN" && (
             <Link
-              href="/admin/verifications"
-              aria-label="Admin Review"
+              href="/admin"
+              aria-label="Admin Console"
               className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-amber-300 bg-amber-50 text-amber-900 transition-colors hover:bg-amber-100"
-              title="Admin Verification Queue"
+              title="Admin Console"
             >
               <ShieldCheck className="h-4 w-4 text-amber-700" />
             </Link>
           )}
           <WorkspaceModeSwitch compact />
-          <LanguageSwitcher compact />
+          {/* Language switcher present in muted styling */}
+          <div className="opacity-75 hover:opacity-100 transition-opacity">
+            <LanguageSwitcher compact />
+          </div>
+          {/* Notifications icon-only */}
+          {user && <NotificationsDialog compact />}
+          {/* Profile icon-only */}
           <Link
             href="/account"
             aria-label={accountLabel}
+            title={accountLabel}
             className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-green-700/30 bg-green-50 text-green-900 transition-colors hover:bg-green-100"
           >
             <User className="h-4 w-4 text-green-800" aria-hidden="true" />
           </Link>
         </div>
       </header>
+
+      {/* Sub-navbar quick management tabs (only items not already in the main 5 tabs) */}
+      <nav aria-label="Quick management tabs" className="border-b border-gray-200 bg-gray-50/70 text-xs">
+        <div className="mx-auto flex max-w-6xl items-center gap-2 overflow-x-auto px-4 py-1.5 sm:px-6">
+          <Link
+            href={user?.role === "BUYER" ? "/profile/buyer" : "/profile"}
+            className={cn(
+              "inline-flex min-h-[34px] items-center gap-1.5 rounded-md px-3 py-1 font-semibold transition-colors whitespace-nowrap",
+              pathname?.startsWith("/profile") && !pathname?.startsWith("/profile/verify")
+                ? "bg-white text-green-900 shadow-2xs border border-gray-200"
+                : "text-gray-600 hover:text-gray-900 hover:bg-white/60",
+            )}
+          >
+            <Sprout className="h-3.5 w-3.5 text-green-700" />
+            <span>{user?.role === "BUYER" ? "Buyer Profile" : "Farm Profile"}</span>
+          </Link>
+
+          <Link
+            href="/profile/verify"
+            className={cn(
+              "inline-flex min-h-[34px] items-center gap-1.5 rounded-md px-3 py-1 font-semibold transition-colors whitespace-nowrap",
+              pathname?.startsWith("/profile/verify")
+                ? "bg-white text-green-900 shadow-2xs border border-gray-200"
+                : "text-gray-600 hover:text-gray-900 hover:bg-white/60",
+            )}
+          >
+            <ShieldCheck className="h-3.5 w-3.5 text-green-700" />
+            <span>ID Verification</span>
+          </Link>
+
+          <Link
+            href="/exchange"
+            className={cn(
+              "inline-flex min-h-[34px] items-center gap-1.5 rounded-md px-3 py-1 font-semibold transition-colors whitespace-nowrap",
+              pathname?.startsWith("/exchange")
+                ? "bg-white text-green-900 shadow-2xs border border-gray-200"
+                : "text-gray-600 hover:text-gray-900 hover:bg-white/60",
+            )}
+          >
+            <ArrowLeftRight className="h-3.5 w-3.5 text-green-700" />
+            <span>Barter Exchange</span>
+          </Link>
+        </div>
+      </nav>
 
       <main className="mx-auto max-w-6xl px-4 pb-24 pt-5 sm:px-6 md:pb-12 md:pt-8">
         <NetworkStatusBanner />

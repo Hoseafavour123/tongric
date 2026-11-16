@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <rect width="400" height="300" fill="#fef9c3" />
+  <g transform="translate(110, 60)">
+    <!-- Husk leaves -->
+    <path d="M40,140 C10,90 20,40 50,20 C70,60 60,110 40,140 Z" fill="#65a30d" />
+    <path d="M140,140 C170,90 160,40 130,20 C110,60 120,110 140,140 Z" fill="#4d7c0f" />
+    <!-- Cob -->
+    <ellipse cx="90" cy="75" rx="35" ry="70" fill="#eab308" />
+    <!-- Kernel rows -->
+    <path d="M70,30 Q90,32 110,30 M65,45 Q90,48 115,45 M62,60 Q90,64 118,60 M60,75 Q90,80 120,75 M62,90 Q90,95 118,90 M65,105 Q90,110 115,105 M70,120 Q90,124 110,120" stroke="#ca8a04" stroke-width="3" fill="none" />
+  </g>
+  <rect x="20" y="235" width="360" height="45" rx="8" fill="#ffffff" fill-opacity="0.9" />
+  <text x="200" y="263" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#854d0e" text-anchor="middle">Yellow Maize (Grain Bags)</text>
+</svg>
+

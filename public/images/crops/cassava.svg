@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <rect width="400" height="300" fill="#fef3c7" />
+  <g transform="translate(100, 70)">
+    <!-- Cassava Tubers -->
+    <path d="M20,90 Q90,50 170,80 Q90,110 20,90 Z" fill="#78350f" />
+    <path d="M40,110 Q110,80 180,105 Q110,130 40,110 Z" fill="#854d0e" />
+    <!-- Cut piece -->
+    <ellipse cx="170" cy="80" rx="15" ry="25" fill="#fef9c3" stroke="#78350f" stroke-width="3" />
+  </g>
+  <rect x="20" y="235" width="360" height="45" rx="8" fill="#ffffff" fill-opacity="0.9" />
+  <text x="200" y="263" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#78350f" text-anchor="middle">Cassava Tubers &amp; Garri</text>
+</svg>
+

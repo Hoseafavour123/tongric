@@ -31,6 +31,7 @@ import { cn } from "@/lib/cn";
 import { createIdempotencyKey } from "@/lib/idempotency";
 import { resilientFetch } from "@/lib/resilient-fetch";
 import type { RegistrationResult } from "@/modules/auth/auth-core";
+import { JudgeQuickLogin } from "./judge-quick-login";
 import {
   NDPA_PRIVACY_POLICY_VERSION,
   registerInputSchema,
@@ -288,10 +289,12 @@ export function RegisterFormView() {
 
   return (
     <div className="mx-auto max-w-xl space-y-5">
+      {/* Grant Reviewer & Judge Direct Login Dropdown */}
+      <JudgeQuickLogin />
+
       <Card>
         <CardHeader>
-          <Badge tone="green">NDPA 2023</Badge>
-          <CardTitle className="mt-3 text-xl sm:text-2xl">
+          <CardTitle className="text-xl sm:text-2xl">
             {t("auth.registerPageTitle")}
           </CardTitle>
           <CardDescription>{t("auth.registerPageSubtitle")}</CardDescription>
@@ -375,8 +378,6 @@ export function RegisterFormView() {
                   );
                 })}
               </div>
-
-              <p className="text-xs text-gray-600">{t("auth.dualViewTip")}</p>
             </fieldset>
 
             <FormField
@@ -407,7 +408,6 @@ export function RegisterFormView() {
             <FormField
               label={t("auth.phoneLabel")}
               required
-              hint={t("auth.phoneHint")}
               error={fieldErrors.phoneNumber}
             >
               {({ id, describedBy, hasError }) => (
@@ -433,7 +433,6 @@ export function RegisterFormView() {
 
             <FormField
               label={t("auth.emailLabel")}
-              hint={t("auth.emailHint")}
               error={fieldErrors.email}
             >
               {({ id, describedBy, hasError }) => (
@@ -481,7 +480,6 @@ export function RegisterFormView() {
             <FormField
               label={t("auth.passwordLabel")}
               required
-              hint={t("auth.passwordHint")}
               error={fieldErrors.password}
             >
               {({ id, describedBy, hasError }) => (
@@ -582,17 +580,12 @@ export function RegisterFormView() {
                   }}
                   className="mt-0.5 h-5 w-5 shrink-0 accent-green-700"
                 />
-                <span className="space-y-1">
-                  <span className="block font-medium text-gray-900">
-                    {t("auth.ndpaRequiredLabel", {
-                      version: NDPA_PRIVACY_POLICY_VERSION,
-                    })}{" "}
-                    <span className="text-red-700" aria-hidden="true">
-                      *
-                    </span>
-                  </span>
-                  <span className="block text-xs leading-relaxed text-gray-600">
-                    {t("auth.ndpaRequiredHint")}
+                <span className="font-medium text-gray-900 leading-snug">
+                  {t("auth.ndpaRequiredLabel", {
+                    version: NDPA_PRIVACY_POLICY_VERSION,
+                  })}{" "}
+                  <span className="text-red-700" aria-hidden="true">
+                    *
                   </span>
                 </span>
               </label>

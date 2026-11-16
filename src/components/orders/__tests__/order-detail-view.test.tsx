@@ -1,8 +1,12 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "@/components/i18n/i18n-provider";
 import { OrderDetailView } from "../order-detail-view";
 import type { OrderDetailSummary } from "@/modules/orders/schemas";
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+}));
 
 describe("OrderDetailView", () => {
   const sampleOrder: OrderDetailSummary = {
@@ -98,5 +102,209 @@ describe("OrderDetailView", () => {
 
     expect(html).toContain("Order Timeline");
     expect(html).toContain("Order confirmed following accepted purchase terms");
+  });
+
+  it("renders pre-collection cancel order and dispute action buttons when CONFIRMED", () => {
+    const html = renderToStaticMarkup(
+      <I18nProvider initialLocale="en" initialHasExplicitLocale>
+        <OrderDetailView
+          order={sampleOrder}
+          currentUserId="usr_buyer_1"
+          currentUserRole="BUYER"
+        />
+      </I18nProvider>,
+    );
+
+    expect(html).toContain("Cancel Order");
+    expect(html).toContain("Report Dispute");
+    expect(html).toContain("Order Lifecycle Actions");
+  });
+
+  it("renders farmer collection action button when CONFIRMED", () => {
+    const html = renderToStaticMarkup(
+      <I18nProvider initialLocale="en" initialHasExplicitLocale>
+        <OrderDetailView
+          order={sampleOrder}
+          currentUserId="usr_farmer_1"
+          currentUserRole="FARMER"
+        />
+      </I18nProvider>,
+    );
+
+    expect(html).toContain("Confirm Produce Collected");
+  });
+
+  it("renders cancelled alert banner and inventory restored notice", () => {
+    const cancelledOrder: OrderDetailSummary = {
+      ...sampleOrder,
+      status: "CANCELLED",
+      cancellationReason: "Inspection discrepancy at farm gate",
+    };
+
+    const html = renderToStaticMarkup(
+      <I18nProvider initialLocale="en" initialHasExplicitLocale>
+        <OrderDetailView
+          order={cancelledOrder}
+          currentUserId="usr_buyer_1"
+          currentUserRole="BUYER"
+        />
+      </I18nProvider>,
+    );
+
+    expect(html).toContain("Order Cancelled Prior to Collection");
+    expect(html).toContain("Inspection discrepancy at farm gate");
+    expect(html).toContain("safely restored to the farmer&#x27;s active marketplace listing");
+  });
+
+  it("renders dispute alert banner when order is DISPUTED", () => {
+    const disputedOrder: OrderDetailSummary = {
+      ...sampleOrder,
+      status: "DISPUTED",
+    };
+
+    const html = renderToStaticMarkup(
+      <I18nProvider initialLocale="en" initialHasExplicitLocale>
+        <OrderDetailView
+          order={disputedOrder}
+          currentUserId="usr_buyer_1"
+          currentUserRole="BUYER"
+        />
+      </I18nProvider>,
+    );
+
+    expect(html).toContain("Under Active Dispute Review");
+    expect(html).toContain("Both parties will be contacted via registered phone");
+  });
+
+  it("renders Farmer Pickup PIN card when viewed by farmer", () => {
+    const orderWithPins: OrderDetailSummary = {
+      ...sampleOrder,
+      pickupPin: "4829",
+      deliveryPin: "7193",
+    };
+
+    const html = renderToStaticMarkup(
+      <I18nProvider initialLocale="en" initialHasExplicitLocale>
+        <OrderDetailView
+          order={orderWithPins}
+          currentUserId="usr_farmer_1"
+          currentUserRole="FARMER"
+        />
+      </I18nProvider>,
+    );
+
+    expect(html).toContain("Pickup PIN (Farm Gate)");
+    expect(html).toContain("4829");
+    expect(html).toContain("Dispatch Waybill");
+  });
+
+  it("renders Buyer Delivery PIN card when viewed by buyer", () => {
+    const orderWithPins: OrderDetailSummary = {
+      ...sampleOrder,
+      pickupPin: "4829",
+      deliveryPin: "7193",
+    };
+
+    const html = renderToStaticMarkup(
+      <I18nProvider initialLocale="en" initialHasExplicitLocale>
+        <OrderDetailView
+          order={orderWithPins}
+          currentUserId="usr_buyer_1"
+          currentUserRole="BUYER"
+        />
+      </I18nProvider>,
+    );
+
+    expect(html).toContain("Delivery PIN (Dropoff)");
+    expect(html).toContain("7193");
+  });
+
+  it("renders carrier PIN verification button for transporter", () => {
+    const orderForCarrier: OrderDetailSummary = {
+      ...sampleOrder,
+      pickupPin: "4829",
+      deliveryPin: "7193",
+      transporterId: "usr_carrier_1",
+      status: "TRANSPORT_ASSIGNED",
+    };
+
+    const html = renderToStaticMarkup(
+      <I18nProvider initialLocale="en" initialHasExplicitLocale>
+        <OrderDetailView
+          order={orderForCarrier}
+          currentUserId="usr_carrier_1"
+          currentUserRole="TRANSPORTER"
+        />
+      </I18nProvider>,
+    );
+
+    expect(html).toContain("Verify Farm-Gate Pickup (Enter PIN)");
+  });
+
+  it("renders carrier review prompt button when order is DELIVERED and unreviewed", () => {
+    const deliveredOrder: OrderDetailSummary = {
+      ...sampleOrder,
+      status: "DELIVERED",
+      transporterId: "usr_carrier_1",
+      transporterName: "Terlumun Logistics",
+    };
+
+    const html = renderToStaticMarkup(
+      <I18nProvider initialLocale="en" initialHasExplicitLocale>
+        <OrderDetailView
+          order={deliveredOrder}
+          currentUserId="usr_buyer_1"
+          currentUserRole="BUYER"
+        />
+      </I18nProvider>,
+    );
+
+    expect(html).toContain("Carrier Haulage Review");
+    expect(html).toContain("PENDING FEEDBACK");
+    expect(html).toContain("Rate Transporter Haulage");
+  });
+
+  it("renders verified carrier review card when initialCarrierReview is provided", () => {
+    const completedOrder: OrderDetailSummary = {
+      ...sampleOrder,
+      status: "COMPLETED",
+      transporterId: "usr_carrier_1",
+      transporterName: "Terlumun Logistics",
+    };
+
+    const review = {
+      id: "rev-1",
+      orderId: "ord-1",
+      orderCode: "ORD-202611-73921",
+      transporterId: "usr_carrier_1",
+      reviewerId: "usr_buyer_1",
+      reviewerName: "Agro Commercials Ltd",
+      reviewerRole: "BUYER",
+      rating: 5,
+      timelinessScore: 5,
+      cargoCareScore: 5,
+      communicationScore: 4,
+      comment: "Prompt arrival and carefully covered produce.",
+      createdAt: new Date().toISOString(),
+    };
+
+    const html = renderToStaticMarkup(
+      <I18nProvider initialLocale="en" initialHasExplicitLocale>
+        <OrderDetailView
+          order={completedOrder}
+          currentUserId="usr_buyer_1"
+          currentUserRole="BUYER"
+          initialCarrierReview={review}
+        />
+      </I18nProvider>,
+    );
+
+    expect(html).toContain("Carrier Haulage Review");
+    expect(html).toContain("VERIFIED REVIEW");
+    expect(html).toContain("5.0 / 5");
+    expect(html).toContain("Prompt arrival and carefully covered produce.");
+    expect(html).toContain("Timeliness");
+    expect(html).toContain("Cargo Care");
+    expect(html).toContain("Communication");
   });
 });

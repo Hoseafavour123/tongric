@@ -7,6 +7,12 @@ import {
   respondToOfferWithRepo,
   getOrderWithRepo,
   listOrdersWithRepo,
+  updateOrderStatusWithRepo,
+  cancelOrderWithRepo,
+  disputeOrderWithRepo,
+  verifyPickupPinWithRepo,
+  verifyDeliveryPinWithRepo,
+  getWaybillWithRepo,
 } from "../orders-core";
 import type {
   OrdersRepository,
@@ -21,6 +27,8 @@ import type {
   CommercialOfferSummary,
   OrderDetailSummary,
   OrderSummary,
+  OrderStatus,
+  WaybillSummary,
 } from "../schemas";
 
 function createMockOrder(
@@ -53,6 +61,16 @@ function createMockOrder(
     status: "CONFIRMED",
     paymentArrangementNote:
       "Direct settlement between Buyer and Farmer; zero platform fund custody (Section 19)",
+    waybillNumber: "WB-202611-73921",
+    pickupPin: "4829",
+    deliveryPin: "7193",
+    pickupVerifiedAt: null,
+    deliveryVerifiedAt: null,
+    transporterId: "usr_carrier_1",
+    transporterName: "Benue Express Haulage",
+    transporterPhone: "+2348055556677",
+    corridorRoute: "Gboko ⇄ Makurdi",
+    estimatedFreightFee: 45000,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     statusEvents: [
@@ -259,6 +277,167 @@ function createMockRepo(
       void _userId;
       void _filter;
       return order ? [order] : [];
+    },
+    async updateOrderStatus(
+      orderId: string,
+      toStatus: string,
+      changedById: string,
+      note?: string | null,
+    ): Promise<OrderDetailSummary> {
+      if (!order || order.id !== orderId) throw new NotFoundError("Not found");
+      order = {
+        ...order,
+        status: toStatus as OrderStatus,
+        statusEvents: [
+          ...order.statusEvents,
+          {
+            id: `evt-${order.statusEvents.length + 1}`,
+            orderId: order.id,
+            fromStatus: order.status,
+            toStatus: toStatus as OrderStatus,
+            changedById,
+            note: note ?? null,
+            createdAt: new Date().toISOString(),
+          },
+        ],
+      };
+      return order;
+    },
+    async cancelOrder(
+      orderId: string,
+      reason: string,
+      changedById: string,
+    ): Promise<{
+      order: OrderDetailSummary;
+      restoredQuantity: number;
+      listingReactivated: boolean;
+    }> {
+      if (!order || order.id !== orderId) throw new NotFoundError("Not found");
+      order = {
+        ...order,
+        status: "CANCELLED",
+        cancellationReason: reason,
+        statusEvents: [
+          ...order.statusEvents,
+          {
+            id: `evt-${order.statusEvents.length + 1}`,
+            orderId: order.id,
+            fromStatus: order.status,
+            toStatus: "CANCELLED",
+            changedById,
+            note: reason,
+            createdAt: new Date().toISOString(),
+          },
+        ],
+      };
+      return { order, restoredQuantity: order.quantity, listingReactivated: false };
+    },
+    async disputeOrder(
+      orderId: string,
+      reason: string,
+      changedById: string,
+    ): Promise<OrderDetailSummary> {
+      if (!order || order.id !== orderId) throw new NotFoundError("Not found");
+      order = {
+        ...order,
+        status: "DISPUTED",
+        statusEvents: [
+          ...order.statusEvents,
+          {
+            id: `evt-${order.statusEvents.length + 1}`,
+            orderId: order.id,
+            fromStatus: order.status,
+            toStatus: "DISPUTED",
+            changedById,
+            note: reason,
+            createdAt: new Date().toISOString(),
+          },
+        ],
+      };
+      return order;
+    },
+    async verifyPickupPin(
+      orderId: string,
+      pin: string,
+      actorUserId: string,
+    ): Promise<OrderDetailSummary> {
+      if (!order || order.id !== orderId) throw new NotFoundError("Not found");
+      if (order.pickupPin !== pin) throw new ValidationError("Invalid pickup PIN");
+      const now = new Date().toISOString();
+      order = {
+        ...order,
+        pickupVerifiedAt: now,
+        status: "COLLECTED",
+        statusEvents: [
+          ...order.statusEvents,
+          {
+            id: `evt-${order.statusEvents.length + 1}`,
+            orderId: order.id,
+            fromStatus: order.status,
+            toStatus: "COLLECTED",
+            changedById: actorUserId,
+            note: "Pickup PIN verified",
+            createdAt: now,
+          },
+        ],
+      };
+      return order;
+    },
+    async verifyDeliveryPin(
+      orderId: string,
+      pin: string,
+      actorUserId: string,
+    ): Promise<OrderDetailSummary> {
+      if (!order || order.id !== orderId) throw new NotFoundError("Not found");
+      if (order.deliveryPin !== pin) throw new ValidationError("Invalid delivery PIN");
+      const now = new Date().toISOString();
+      order = {
+        ...order,
+        deliveryVerifiedAt: now,
+        status: "DELIVERED",
+        statusEvents: [
+          ...order.statusEvents,
+          {
+            id: `evt-${order.statusEvents.length + 1}`,
+            orderId: order.id,
+            fromStatus: order.status,
+            toStatus: "DELIVERED",
+            changedById: actorUserId,
+            note: "Delivery PIN verified",
+            createdAt: now,
+          },
+        ],
+      };
+      return order;
+    },
+    async getWaybillByOrderId(orderId: string): Promise<WaybillSummary | null> {
+      if (!order || order.id !== orderId) return null;
+      return {
+        waybillNumber: order.waybillNumber || `WB-${order.orderCode}`,
+        orderId: order.id,
+        orderCode: order.orderCode,
+        cropCode: order.cropCode,
+        quantity: order.quantity,
+        unitCode: order.unitCode,
+        estimatedWeightKg: order.estimatedWeightKg,
+        totalAmount: order.totalAmount,
+        currency: order.currency,
+        corridorRoute: order.corridorRoute ?? "Gboko ⇄ Makurdi",
+        estimatedFreightFee: order.estimatedFreightFee ?? 45000,
+        pickupLga: order.listingLga ?? "Gboko",
+        pickupCommunity: order.listingCommunity ?? "Tor-Donga",
+        destinationLocation: order.destinationLocation,
+        farmerName: order.farmerName || "Farmer",
+        farmerPhone: order.farmerPhone || "",
+        buyerName: order.buyerName || "Buyer",
+        buyerPhone: order.buyerPhone || "",
+        transporterName: order.transporterName ?? "Benue Express Haulage",
+        transporterPhone: order.transporterPhone ?? "+2348055556677",
+        status: order.status,
+        pickupVerifiedAt: order.pickupVerifiedAt ?? null,
+        deliveryVerifiedAt: order.deliveryVerifiedAt ?? null,
+        createdAt: order.createdAt,
+      };
     },
   };
 }
@@ -591,6 +770,498 @@ describe("orders-core", () => {
 
       expect(list.length).toBe(1);
       expect(list[0]?.orderCode).toBe("ORD-202611-73921");
+    });
+  });
+
+  describe("updateOrderStatusWithRepo", () => {
+    it("allows farmer or transporter to advance order from CONFIRMED to COLLECTED", async () => {
+      const order = createMockOrder({ status: "CONFIRMED" });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      const updated = await updateOrderStatusWithRepo(
+        repo,
+        { id: "usr_farmer_1", role: "FARMER" },
+        "ord-1",
+        { toStatus: "COLLECTED", note: "Produce collected at farm gate" },
+      );
+
+      expect(updated.status).toBe("COLLECTED");
+      expect(updated.statusEvents.length).toBe(2);
+      expect(updated.statusEvents[1]?.note).toBe("Produce collected at farm gate");
+    });
+
+    it("allows transporter to advance order to IN_TRANSIT", async () => {
+      const order = createMockOrder({ status: "COLLECTED" });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      const updated = await updateOrderStatusWithRepo(
+        repo,
+        { id: "usr_transporter_1", role: "TRANSPORTER" },
+        "ord-1",
+        { toStatus: "IN_TRANSIT", note: "Dispatched towards Makurdi" },
+      );
+
+      expect(updated.status).toBe("IN_TRANSIT");
+    });
+
+    it("allows transporter or farmer to advance order to DELIVERED", async () => {
+      const order = createMockOrder({ status: "IN_TRANSIT" });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      const updated = await updateOrderStatusWithRepo(
+        repo,
+        { id: "usr_farmer_1", role: "FARMER" },
+        "ord-1",
+        { toStatus: "DELIVERED", note: "Arrived at buyer warehouse" },
+      );
+
+      expect(updated.status).toBe("DELIVERED");
+    });
+
+    it("allows buyer to confirm receipt and mark COMPLETED", async () => {
+      const order = createMockOrder({ status: "DELIVERED" });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      const updated = await updateOrderStatusWithRepo(
+        repo,
+        { id: "usr_buyer_1", role: "BUYER" },
+        "ord-1",
+        { toStatus: "COMPLETED", note: "Received 20 bags in good condition" },
+      );
+
+      expect(updated.status).toBe("COMPLETED");
+    });
+
+    it("prevents non-buyer from completing the order", async () => {
+      const order = createMockOrder({ status: "DELIVERED" });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      await expect(
+        updateOrderStatusWithRepo(
+          repo,
+          { id: "usr_farmer_1", role: "FARMER" },
+          "ord-1",
+          { toStatus: "COMPLETED" },
+        ),
+      ).rejects.toThrow(ForbiddenError);
+    });
+
+    it("rejects invalid status transitions", async () => {
+      const order = createMockOrder({ status: "CONFIRMED" });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      await expect(
+        updateOrderStatusWithRepo(
+          repo,
+          { id: "usr_buyer_1", role: "BUYER" },
+          "ord-1",
+          { toStatus: "COMPLETED" },
+        ),
+      ).rejects.toThrow(ValidationError);
+    });
+
+    it("rejects transitions on already completed orders", async () => {
+      const order = createMockOrder({ status: "COMPLETED" });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      await expect(
+        updateOrderStatusWithRepo(
+          repo,
+          { id: "usr_buyer_1", role: "BUYER" },
+          "ord-1",
+          { toStatus: "DELIVERED" },
+        ),
+      ).rejects.toThrow(ValidationError);
+    });
+
+    it("rejects transitions on cancelled orders", async () => {
+      const order = createMockOrder({ status: "CANCELLED" });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      await expect(
+        updateOrderStatusWithRepo(
+          repo,
+          { id: "usr_buyer_1", role: "BUYER" },
+          "ord-1",
+          { toStatus: "CONFIRMED" },
+        ),
+      ).rejects.toThrow(ValidationError);
+    });
+  });
+
+  describe("cancelOrderWithRepo", () => {
+    it("allows buyer to cancel order prior to collection", async () => {
+      const order = createMockOrder({ status: "CONFIRMED" });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      const result = await cancelOrderWithRepo(
+        repo,
+        { id: "usr_buyer_1", role: "BUYER" },
+        "ord-1",
+        { reason: "Transport arrangement fell through before collection" },
+      );
+
+      expect(result.order.status).toBe("CANCELLED");
+      expect(result.order.cancellationReason).toBe(
+        "Transport arrangement fell through before collection",
+      );
+      expect(result.restoredQuantity).toBe(20);
+    });
+
+    it("allows farmer to cancel order when transport is requested", async () => {
+      const order = createMockOrder({ status: "TRANSPORT_REQUESTED" });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      const result = await cancelOrderWithRepo(
+        repo,
+        { id: "usr_farmer_1", role: "FARMER" },
+        "ord-1",
+        { reason: "Unforeseen flood damaged access road" },
+      );
+
+      expect(result.order.status).toBe("CANCELLED");
+    });
+
+    it("prohibits cancellation once produce is COLLECTED", async () => {
+      const order = createMockOrder({ status: "COLLECTED" });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      await expect(
+        cancelOrderWithRepo(
+          repo,
+          { id: "usr_buyer_1", role: "BUYER" },
+          "ord-1",
+          { reason: "Buyer changed mind after collection" },
+        ),
+      ).rejects.toThrow(ValidationError);
+    });
+
+    it("prohibits cancellation once order is in transit or delivered", async () => {
+      const order = createMockOrder({ status: "IN_TRANSIT" });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      await expect(
+        cancelOrderWithRepo(
+          repo,
+          { id: "usr_buyer_1", role: "BUYER" },
+          "ord-1",
+          { reason: "Too late cancellation" },
+        ),
+      ).rejects.toThrow(ValidationError);
+    });
+
+    it("rejects cancellation by unauthorized user", async () => {
+      const order = createMockOrder({ status: "CONFIRMED" });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      await expect(
+        cancelOrderWithRepo(
+          repo,
+          { id: "stranger_id", role: "BUYER" },
+          "ord-1",
+          { reason: "Malicious cancel attempt" },
+        ),
+      ).rejects.toThrow(ForbiddenError);
+    });
+  });
+
+  describe("disputeOrderWithRepo", () => {
+    it("allows buyer to report dispute on active order", async () => {
+      const order = createMockOrder({ status: "DELIVERED" });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      const disputed = await disputeOrderWithRepo(
+        repo,
+        { id: "usr_buyer_1", role: "BUYER" },
+        "ord-1",
+        { reason: "5 bags were found spoiled upon warehouse delivery" },
+      );
+
+      expect(disputed.status).toBe("DISPUTED");
+    });
+
+    it("prevents reporting duplicate dispute when already in dispute", async () => {
+      const order = createMockOrder({ status: "DISPUTED" });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      await expect(
+        disputeOrderWithRepo(
+          repo,
+          { id: "usr_buyer_1", role: "BUYER" },
+          "ord-1",
+          { reason: "Second dispute message" },
+        ),
+      ).rejects.toThrow(ValidationError);
+    });
+
+    it("prevents disputing a cancelled order", async () => {
+      const order = createMockOrder({ status: "CANCELLED" });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      await expect(
+        disputeOrderWithRepo(
+          repo,
+          { id: "usr_buyer_1", role: "BUYER" },
+          "ord-1",
+          { reason: "Trying to dispute cancelled order" },
+        ),
+      ).rejects.toThrow(ValidationError);
+    });
+
+    it("rejects dispute from non-participant", async () => {
+      const order = createMockOrder({ status: "COLLECTED" });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      await expect(
+        disputeOrderWithRepo(
+          repo,
+          { id: "random_id", role: "BUYER" },
+          "ord-1",
+          { reason: "Uninvolved observer dispute" },
+        ),
+      ).rejects.toThrow(ForbiddenError);
+    });
+  });
+
+  describe("verifyPickupPinWithRepo", () => {
+    it("successfully verifies farm-gate pickup for assigned carrier", async () => {
+      const order = createMockOrder({
+        status: "TRANSPORT_ASSIGNED",
+        pickupPin: "4829",
+        transporterId: "usr_carrier_1",
+      });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      const result = await verifyPickupPinWithRepo(
+        repo,
+        { id: "usr_carrier_1", role: "TRANSPORTER" },
+        "ord-1",
+        { pin: "4829" },
+      );
+
+      expect(result.status).toBe("COLLECTED");
+      expect(result.pickupVerifiedAt).toBeDefined();
+    });
+
+    it("allows admin to verify pickup PIN", async () => {
+      const order = createMockOrder({
+        status: "CONFIRMED",
+        pickupPin: "4829",
+      });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      const result = await verifyPickupPinWithRepo(
+        repo,
+        { id: "usr_admin", role: "ADMIN" },
+        "ord-1",
+        { pin: "4829" },
+      );
+
+      expect(result.status).toBe("COLLECTED");
+    });
+
+    it("rejects verification if wrong PIN is entered", async () => {
+      const order = createMockOrder({
+        status: "TRANSPORT_ASSIGNED",
+        pickupPin: "4829",
+        transporterId: "usr_carrier_1",
+      });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      await expect(
+        verifyPickupPinWithRepo(
+          repo,
+          { id: "usr_carrier_1", role: "TRANSPORTER" },
+          "ord-1",
+          { pin: "0000" },
+        ),
+      ).rejects.toThrow(ValidationError);
+    });
+
+    it("rejects if PIN format is invalid (not 4 digits)", async () => {
+      const order = createMockOrder({
+        status: "TRANSPORT_ASSIGNED",
+        pickupPin: "4829",
+        transporterId: "usr_carrier_1",
+      });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      await expect(
+        verifyPickupPinWithRepo(
+          repo,
+          { id: "usr_carrier_1", role: "TRANSPORTER" },
+          "ord-1",
+          { pin: "12" },
+        ),
+      ).rejects.toThrow(ValidationError);
+    });
+
+    it("rejects unauthorized carrier", async () => {
+      const order = createMockOrder({
+        status: "TRANSPORT_ASSIGNED",
+        pickupPin: "4829",
+        transporterId: "usr_carrier_1",
+      });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      await expect(
+        verifyPickupPinWithRepo(
+          repo,
+          { id: "usr_intruder", role: "TRANSPORTER" },
+          "ord-1",
+          { pin: "4829" },
+        ),
+      ).rejects.toThrow(ForbiddenError);
+    });
+
+    it("rejects verification if order is already cancelled or collected", async () => {
+      const order = createMockOrder({
+        status: "COLLECTED",
+        pickupPin: "4829",
+        pickupVerifiedAt: new Date().toISOString(),
+        transporterId: "usr_carrier_1",
+      });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      await expect(
+        verifyPickupPinWithRepo(
+          repo,
+          { id: "usr_carrier_1", role: "TRANSPORTER" },
+          "ord-1",
+          { pin: "4829" },
+        ),
+      ).rejects.toThrow(ValidationError);
+    });
+  });
+
+  describe("verifyDeliveryPinWithRepo", () => {
+    it("successfully verifies delivery handover for assigned carrier", async () => {
+      const order = createMockOrder({
+        status: "COLLECTED",
+        deliveryPin: "7193",
+        pickupVerifiedAt: new Date().toISOString(),
+        transporterId: "usr_carrier_1",
+      });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      const result = await verifyDeliveryPinWithRepo(
+        repo,
+        { id: "usr_carrier_1", role: "TRANSPORTER" },
+        "ord-1",
+        { pin: "7193" },
+      );
+
+      expect(result.status).toBe("DELIVERED");
+      expect(result.deliveryVerifiedAt).toBeDefined();
+    });
+
+    it("rejects delivery verification if pickup was not verified first", async () => {
+      const order = createMockOrder({
+        status: "TRANSPORT_ASSIGNED",
+        deliveryPin: "7193",
+        pickupVerifiedAt: null,
+        transporterId: "usr_carrier_1",
+      });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      await expect(
+        verifyDeliveryPinWithRepo(
+          repo,
+          { id: "usr_carrier_1", role: "TRANSPORTER" },
+          "ord-1",
+          { pin: "7193" },
+        ),
+      ).rejects.toThrow(ValidationError);
+    });
+
+    it("rejects if wrong delivery PIN is entered", async () => {
+      const order = createMockOrder({
+        status: "COLLECTED",
+        deliveryPin: "7193",
+        pickupVerifiedAt: new Date().toISOString(),
+        transporterId: "usr_carrier_1",
+      });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      await expect(
+        verifyDeliveryPinWithRepo(
+          repo,
+          { id: "usr_carrier_1", role: "TRANSPORTER" },
+          "ord-1",
+          { pin: "9999" },
+        ),
+      ).rejects.toThrow(ValidationError);
+    });
+
+    it("rejects unauthorized party", async () => {
+      const order = createMockOrder({
+        status: "COLLECTED",
+        deliveryPin: "7193",
+        pickupVerifiedAt: new Date().toISOString(),
+        transporterId: "usr_carrier_1",
+      });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      await expect(
+        verifyDeliveryPinWithRepo(
+          repo,
+          { id: "usr_stranger", role: "BUYER" },
+          "ord-1",
+          { pin: "7193" },
+        ),
+      ).rejects.toThrow(ForbiddenError);
+    });
+  });
+
+  describe("getWaybillWithRepo", () => {
+    it("allows buyer, farmer, transporter, and admin to retrieve waybill", async () => {
+      const order = createMockOrder({
+        transporterId: "usr_carrier_1",
+      });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      const wbBuyer = await getWaybillWithRepo(
+        repo,
+        { id: "usr_buyer_1", role: "BUYER" },
+        "ord-1",
+      );
+      expect(wbBuyer.waybillNumber).toBe("WB-202611-73921");
+
+      const wbFarmer = await getWaybillWithRepo(
+        repo,
+        { id: "usr_farmer_1", role: "FARMER" },
+        "ord-1",
+      );
+      expect(wbFarmer.waybillNumber).toBe("WB-202611-73921");
+
+      const wbCarrier = await getWaybillWithRepo(
+        repo,
+        { id: "usr_carrier_1", role: "TRANSPORTER" },
+        "ord-1",
+      );
+      expect(wbCarrier.waybillNumber).toBe("WB-202611-73921");
+
+      const wbAdmin = await getWaybillWithRepo(
+        repo,
+        { id: "usr_admin", role: "ADMIN" },
+        "ord-1",
+      );
+      expect(wbAdmin.waybillNumber).toBe("WB-202611-73921");
+    });
+
+    it("rejects access to uninvolved user", async () => {
+      const order = createMockOrder({
+        transporterId: "usr_carrier_1",
+      });
+      const repo = createMockRepo(undefined, undefined, order);
+
+      await expect(
+        getWaybillWithRepo(
+          repo,
+          { id: "usr_unrelated", role: "BUYER" },
+          "ord-1",
+        ),
+      ).rejects.toThrow(ForbiddenError);
     });
   });
 });

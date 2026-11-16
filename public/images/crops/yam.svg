@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <rect width="400" height="300" fill="#fef3c7" />
+  <g transform="translate(100, 70)">
+    <!-- Yam Tubers -->
+    <ellipse cx="100" cy="80" rx="95" ry="40" fill="#78350f" transform="rotate(-15 100 80)" />
+    <ellipse cx="100" cy="80" rx="90" ry="36" fill="#854d0e" transform="rotate(-15 100 80)" />
+    <!-- Sliced end showing creamy white flesh -->
+    <ellipse cx="180" cy="55" rx="20" ry="35" fill="#fef9c3" stroke="#78350f" stroke-width="4" transform="rotate(-15 180 55)" />
+    <!-- Texture ridges -->
+    <path d="M40,90 Q100,75 160,85" stroke="#451a03" stroke-width="2.5" fill="none" opacity="0.6" />
+    <path d="M50,105 Q100,95 150,100" stroke="#451a03" stroke-width="2.5" fill="none" opacity="0.6" />
+  </g>
+  <rect x="20" y="235" width="360" height="45" rx="8" fill="#ffffff" fill-opacity="0.9" />
+  <text x="200" y="263" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#78350f" text-anchor="middle">White Guinea Yam (Tubers)</text>
+</svg>
+

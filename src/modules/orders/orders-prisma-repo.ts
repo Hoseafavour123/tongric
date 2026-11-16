@@ -17,6 +17,7 @@ import type {
   OrderSummary,
   OrderDetailSummary,
   OrderStatusEventSummary,
+  WaybillSummary,
 } from "./schemas.ts";
 import { PRODUCE_CROP_CATALOG, estimateWeightKg } from "@/modules/i18n/catalogs";
 import { NotFoundError, ValidationError } from "@/lib/errors";
@@ -174,6 +175,14 @@ interface RawOrderWithRelations {
   status: string;
   paymentArrangementNote: string | null;
   cancellationReason: string | null;
+  transporterId?: string | null;
+  corridorRoute?: string | null;
+  estimatedFreightFee?: { toString(): string } | number | null;
+  waybillNumber?: string | null;
+  pickupPin?: string | null;
+  deliveryPin?: string | null;
+  pickupVerifiedAt?: Date | null;
+  deliveryVerifiedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
   listing?: {
@@ -194,6 +203,10 @@ interface RawOrderWithRelations {
       lga: string;
       community: string;
     } | null;
+  } | null;
+  transporter?: {
+    fullName: string;
+    phoneNumber: string;
   } | null;
   statusEvents?: Array<{
     id: string;
@@ -272,6 +285,21 @@ function mapToOrderDetailSummary(row: RawOrderWithRelations): OrderDetailSummary
     listingCommunity: row.listing?.community,
     farmerAddress: farmerLoc,
     cancellationReason: row.cancellationReason,
+    transporterId: row.transporterId ?? null,
+    transporterName: row.transporter?.fullName ?? null,
+    transporterPhone: row.transporter?.phoneNumber ?? null,
+    corridorRoute: row.corridorRoute ?? null,
+    estimatedFreightFee:
+      row.estimatedFreightFee != null ? Number(row.estimatedFreightFee) : null,
+    waybillNumber: row.waybillNumber ?? null,
+    pickupPin: row.pickupPin ?? null,
+    deliveryPin: row.deliveryPin ?? null,
+    pickupVerifiedAt: row.pickupVerifiedAt
+      ? row.pickupVerifiedAt.toISOString()
+      : null,
+    deliveryVerifiedAt: row.deliveryVerifiedAt
+      ? row.deliveryVerifiedAt.toISOString()
+      : null,
     statusEvents: events,
   };
 }
@@ -299,6 +327,48 @@ export function createPrismaOrdersRepository(db: PrismaClient): OrdersRepository
     messages: {
       orderBy: { createdAt: "asc" },
       include: { sender: { select: { fullName: true, role: true } } },
+    },
+  } as const;
+
+  const orderDetailInclude = {
+    listing: {
+      include: {
+        photos: {
+          select: { publicUrl: true, isPrimary: true },
+        },
+      },
+    },
+    farmer: {
+      select: {
+        fullName: true,
+        phoneNumber: true,
+        farmerProfile: {
+          select: {
+            lga: true,
+            community: true,
+          },
+        },
+      },
+    },
+    buyer: {
+      select: {
+        fullName: true,
+        phoneNumber: true,
+      },
+    },
+    transporter: {
+      select: {
+        fullName: true,
+        phoneNumber: true,
+      },
+    },
+    statusEvents: {
+      include: {
+        changedBy: {
+          select: { fullName: true },
+        },
+      },
+      orderBy: { createdAt: "asc" as const },
     },
   } as const;
 
@@ -589,11 +659,14 @@ export function createPrismaOrdersRepository(db: PrismaClient): OrdersRepository
           }
         }
 
-        // 6. Generate human-readable order code ORD-YYYYMM-XXXXX (DEC-032)
+        // 6. Generate human-readable order code ORD-YYYYMM-XXXXX (DEC-032) & waybill WB-YYYYMM-XXXXX
         const now = new Date();
         const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
         const randomDigits = Math.floor(10000 + Math.random() * 90000).toString();
         const orderCode = `ORD-${yearMonth}-${randomDigits}`;
+        const waybillNumber = `WB-${yearMonth}-${randomDigits}`;
+        const pickupPin = Math.floor(1000 + Math.random() * 9000).toString();
+        const deliveryPin = Math.floor(1000 + Math.random() * 9000).toString();
 
         // 7. Calculate estimated total weight in kg
         const weightKg =
@@ -604,6 +677,9 @@ export function createPrismaOrdersRepository(db: PrismaClient): OrdersRepository
         const createdOrder = await tx.order.create({
           data: {
             orderCode,
+            waybillNumber,
+            pickupPin,
+            deliveryPin,
             offerId,
             listingId: offer.listingId,
             farmerId: offer.farmerId,
@@ -644,6 +720,7 @@ export function createPrismaOrdersRepository(db: PrismaClient): OrdersRepository
             entityId: createdOrder.id,
             metadata: {
               orderCode,
+              waybillNumber,
               offerId,
               listingId: offer.listingId,
               quantity: offer.quantity,
@@ -656,41 +733,7 @@ export function createPrismaOrdersRepository(db: PrismaClient): OrdersRepository
         // Fetch full order with relations
         const fullOrder = await tx.order.findUniqueOrThrow({
           where: { id: createdOrder.id },
-          include: {
-            listing: {
-              include: {
-                photos: {
-                  select: { publicUrl: true, isPrimary: true },
-                },
-              },
-            },
-            farmer: {
-              select: {
-                fullName: true,
-                phoneNumber: true,
-                farmerProfile: {
-                  select: {
-                    lga: true,
-                    community: true,
-                  },
-                },
-              },
-            },
-            buyer: {
-              select: {
-                fullName: true,
-                phoneNumber: true,
-              },
-            },
-            statusEvents: {
-              include: {
-                changedBy: {
-                  select: { fullName: true },
-                },
-              },
-              orderBy: { createdAt: "asc" },
-            },
-          },
+          include: orderDetailInclude,
         });
 
         return {
@@ -703,41 +746,7 @@ export function createPrismaOrdersRepository(db: PrismaClient): OrdersRepository
     async getOrderById(orderId: string): Promise<OrderDetailSummary | null> {
       const order = await db.order.findUnique({
         where: { id: orderId },
-        include: {
-          listing: {
-            include: {
-              photos: {
-                select: { publicUrl: true, isPrimary: true },
-              },
-            },
-          },
-          farmer: {
-            select: {
-              fullName: true,
-              phoneNumber: true,
-              farmerProfile: {
-                select: {
-                  lga: true,
-                  community: true,
-                },
-              },
-            },
-          },
-          buyer: {
-            select: {
-              fullName: true,
-              phoneNumber: true,
-            },
-          },
-          statusEvents: {
-            include: {
-              changedBy: {
-                select: { fullName: true },
-              },
-            },
-            orderBy: { createdAt: "asc" },
-          },
-        },
+        include: orderDetailInclude,
       });
 
       if (!order) return null;
@@ -789,6 +798,400 @@ export function createPrismaOrdersRepository(db: PrismaClient): OrdersRepository
       });
 
       return rows.map((r) => mapToOrderSummary(r as unknown as RawOrderWithRelations));
+    },
+
+    async updateOrderStatus(
+      orderId: string,
+      toStatus: string,
+      changedById: string,
+      note?: string | null,
+    ): Promise<OrderDetailSummary> {
+      return await db.$transaction(async (tx) => {
+        const order = await tx.order.findUnique({
+          where: { id: orderId },
+        });
+
+        if (!order) {
+          throw new NotFoundError("Order not found");
+        }
+
+        await tx.order.update({
+          where: { id: orderId },
+          data: { status: toStatus as OrderStatus },
+        });
+
+        await tx.orderStatusEvent.create({
+          data: {
+            orderId,
+            fromStatus: order.status,
+            toStatus: toStatus as OrderStatus,
+            changedById,
+            note: note ?? null,
+          },
+        });
+
+        await tx.auditLog.create({
+          data: {
+            actorUserId: changedById,
+            action: "ORDER_STATUS_UPDATED",
+            entityType: "ORDER",
+            entityId: orderId,
+            metadata: {
+              orderCode: order.orderCode,
+              fromStatus: order.status,
+              toStatus,
+              note: note ?? null,
+            },
+          },
+        });
+
+        const fullOrder = await tx.order.findUniqueOrThrow({
+          where: { id: orderId },
+          include: orderDetailInclude,
+        });
+
+        return mapToOrderDetailSummary(fullOrder as unknown as RawOrderWithRelations);
+      });
+    },
+
+    async cancelOrder(
+      orderId: string,
+      reason: string,
+      changedById: string,
+    ): Promise<{
+      order: OrderDetailSummary;
+      restoredQuantity: number;
+      listingReactivated: boolean;
+    }> {
+      return await db.$transaction(async (tx) => {
+        const order = await tx.order.findUnique({
+          where: { id: orderId },
+        });
+
+        if (!order) {
+          throw new NotFoundError("Order not found");
+        }
+
+        await tx.order.update({
+          where: { id: orderId },
+          data: {
+            status: "CANCELLED",
+            cancellationReason: reason,
+          },
+        });
+
+        await tx.orderStatusEvent.create({
+          data: {
+            orderId,
+            fromStatus: order.status,
+            toStatus: "CANCELLED",
+            changedById,
+            note: `Cancelled: ${reason}`,
+          },
+        });
+
+        const listing = await tx.produceListing.findUnique({
+          where: { id: order.listingId },
+        });
+
+        let listingReactivated = false;
+        if (listing) {
+          const restoredQty = listing.quantity + order.quantity;
+          const reactivate = listing.status === "SOLD_OUT";
+          listingReactivated = reactivate;
+
+          await tx.produceListing.update({
+            where: { id: order.listingId },
+            data: {
+              quantity: restoredQty,
+              status: reactivate ? "ACTIVE" : listing.status,
+            },
+          });
+        }
+
+        await tx.auditLog.create({
+          data: {
+            actorUserId: changedById,
+            action: "ORDER_CANCELLED",
+            entityType: "ORDER",
+            entityId: orderId,
+            metadata: {
+              orderCode: order.orderCode,
+              reason,
+              restoredQuantity: order.quantity,
+              listingReactivated,
+            },
+          },
+        });
+
+        const fullOrder = await tx.order.findUniqueOrThrow({
+          where: { id: orderId },
+          include: orderDetailInclude,
+        });
+
+        return {
+          order: mapToOrderDetailSummary(fullOrder as unknown as RawOrderWithRelations),
+          restoredQuantity: order.quantity,
+          listingReactivated,
+        };
+      });
+    },
+
+    async disputeOrder(
+      orderId: string,
+      reason: string,
+      changedById: string,
+    ): Promise<OrderDetailSummary> {
+      return await db.$transaction(async (tx) => {
+        const order = await tx.order.findUnique({
+          where: { id: orderId },
+        });
+
+        if (!order) {
+          throw new NotFoundError("Order not found");
+        }
+
+        await tx.order.update({
+          where: { id: orderId },
+          data: { status: "DISPUTED" },
+        });
+
+        await tx.orderStatusEvent.create({
+          data: {
+            orderId,
+            fromStatus: order.status,
+            toStatus: "DISPUTED",
+            changedById,
+            note: `Dispute filed: ${reason}`,
+          },
+        });
+
+        await tx.auditLog.create({
+          data: {
+            actorUserId: changedById,
+            action: "ORDER_DISPUTED",
+            entityType: "ORDER",
+            entityId: orderId,
+            metadata: {
+              orderCode: order.orderCode,
+              reason,
+              previousStatus: order.status,
+            },
+          },
+        });
+
+        const fullOrder = await tx.order.findUniqueOrThrow({
+          where: { id: orderId },
+          include: orderDetailInclude,
+        });
+
+        return mapToOrderDetailSummary(fullOrder as unknown as RawOrderWithRelations);
+      });
+    },
+
+    async verifyPickupPin(
+      orderId: string,
+      pin: string,
+      actorUserId: string,
+    ): Promise<OrderDetailSummary> {
+      return await db.$transaction(async (tx) => {
+        const order = await tx.order.findUnique({
+          where: { id: orderId },
+        });
+
+        if (!order) {
+          throw new NotFoundError("Order not found");
+        }
+
+        if (order.pickupPin !== pin) {
+          throw new ValidationError(
+            "Invalid pickup verification PIN. Please confirm the 4-digit PIN with the farmer at collection.",
+          );
+        }
+
+        const now = new Date();
+        await tx.order.update({
+          where: { id: orderId },
+          data: {
+            pickupVerifiedAt: now,
+            status: "COLLECTED",
+          },
+        });
+
+        await tx.orderStatusEvent.create({
+          data: {
+            orderId,
+            fromStatus: order.status,
+            toStatus: "COLLECTED",
+            changedById: actorUserId,
+            note: "Farm-gate produce collection verified and authenticated via 4-digit Pickup PIN",
+          },
+        });
+
+        await tx.auditLog.create({
+          data: {
+            actorUserId,
+            action: "ORDER_PICKUP_VERIFIED",
+            entityType: "ORDER",
+            entityId: orderId,
+            metadata: {
+              orderCode: order.orderCode,
+              pickupVerifiedAt: now.toISOString(),
+            },
+          },
+        });
+
+        const fullOrder = await tx.order.findUniqueOrThrow({
+          where: { id: orderId },
+          include: orderDetailInclude,
+        });
+
+        return mapToOrderDetailSummary(fullOrder as unknown as RawOrderWithRelations);
+      });
+    },
+
+    async verifyDeliveryPin(
+      orderId: string,
+      pin: string,
+      actorUserId: string,
+    ): Promise<OrderDetailSummary> {
+      return await db.$transaction(async (tx) => {
+        const order = await tx.order.findUnique({
+          where: { id: orderId },
+        });
+
+        if (!order) {
+          throw new NotFoundError("Order not found");
+        }
+
+        if (order.deliveryPin !== pin) {
+          throw new ValidationError(
+            "Invalid delivery verification PIN. Please confirm the 4-digit PIN with the receiving buyer.",
+          );
+        }
+
+        const now = new Date();
+        await tx.order.update({
+          where: { id: orderId },
+          data: {
+            deliveryVerifiedAt: now,
+            status: "DELIVERED",
+          },
+        });
+
+        await tx.orderStatusEvent.create({
+          data: {
+            orderId,
+            fromStatus: order.status,
+            toStatus: "DELIVERED",
+            changedById: actorUserId,
+            note: "Dropoff delivery verified and authenticated via Buyer 4-digit Delivery PIN",
+          },
+        });
+
+        await tx.auditLog.create({
+          data: {
+            actorUserId,
+            action: "ORDER_DELIVERY_VERIFIED",
+            entityType: "ORDER",
+            entityId: orderId,
+            metadata: {
+              orderCode: order.orderCode,
+              deliveryVerifiedAt: now.toISOString(),
+            },
+          },
+        });
+
+        const fullOrder = await tx.order.findUniqueOrThrow({
+          where: { id: orderId },
+          include: orderDetailInclude,
+        });
+
+        return mapToOrderDetailSummary(fullOrder as unknown as RawOrderWithRelations);
+      });
+    },
+
+    async getWaybillByOrderId(orderId: string): Promise<WaybillSummary | null> {
+      const order = await db.order.findUnique({
+        where: { id: orderId },
+        include: {
+          listing: {
+            select: {
+              lga: true,
+              community: true,
+            },
+          },
+          farmer: {
+            select: {
+              fullName: true,
+              phoneNumber: true,
+              farmerProfile: {
+                select: {
+                  lga: true,
+                  community: true,
+                },
+              },
+            },
+          },
+          buyer: {
+            select: {
+              fullName: true,
+              phoneNumber: true,
+            },
+          },
+          transporter: {
+            select: {
+              fullName: true,
+              phoneNumber: true,
+            },
+          },
+        },
+      });
+
+      if (!order) return null;
+
+      const pickupLga =
+        order.listing?.lga ||
+        order.farmer?.farmerProfile?.lga ||
+        "Benue Central Hub";
+      const pickupCommunity =
+        order.listing?.community ||
+        order.farmer?.farmerProfile?.community ||
+        null;
+
+      return {
+        waybillNumber: order.waybillNumber || `WB-${order.orderCode}`,
+        orderId: order.id,
+        orderCode: order.orderCode,
+        cropCode: order.cropCode,
+        quantity: order.quantity,
+        unitCode: order.unitCode,
+        estimatedWeightKg: Number(order.estimatedWeightKg),
+        totalAmount: Number(order.totalAmount),
+        currency: order.currency,
+        corridorRoute: order.corridorRoute,
+        estimatedFreightFee:
+          order.estimatedFreightFee != null
+            ? Number(order.estimatedFreightFee)
+            : null,
+        pickupLga,
+        pickupCommunity,
+        destinationLocation: order.destinationLocation,
+        farmerName: order.farmer?.fullName || "Farmer",
+        farmerPhone: order.farmer?.phoneNumber || "",
+        buyerName: order.buyer?.fullName || "Buyer",
+        buyerPhone: order.buyer?.phoneNumber || "",
+        transporterName: order.transporter?.fullName || null,
+        transporterPhone: order.transporter?.phoneNumber || null,
+        status: order.status as OrderStatus,
+        pickupVerifiedAt: order.pickupVerifiedAt
+          ? order.pickupVerifiedAt.toISOString()
+          : null,
+        deliveryVerifiedAt: order.deliveryVerifiedAt
+          ? order.deliveryVerifiedAt.toISOString()
+          : null,
+        createdAt: order.createdAt.toISOString(),
+      };
     },
   };
 }

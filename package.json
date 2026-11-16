@@ -15,7 +15,11 @@
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
+    "db:seed": "node prisma/seed.ts",
     "i18n:sync": "node src/modules/i18n/sync.ts"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.6.0",

@@ -41,9 +41,21 @@ function mapUniqueConstraintError(error: unknown): never {
 export function createPrismaAuthRepository(db: PrismaClient): AuthRepository {
   return {
     async findExistingIdentity(input): Promise<ExistingIdentityMatch> {
+      const cleanDigits = input.phoneNumber.replace(/\D/g, "");
+      const candidates = new Set<string>([input.phoneNumber]);
+      if (cleanDigits.startsWith("234") && cleanDigits.length === 13) {
+        candidates.add(`+${cleanDigits}`);
+        candidates.add(`0${cleanDigits.slice(3)}`);
+        candidates.add(cleanDigits);
+      } else if (cleanDigits.startsWith("0") && cleanDigits.length === 11) {
+        candidates.add(cleanDigits);
+        candidates.add(`+234${cleanDigits.slice(1)}`);
+        candidates.add(`234${cleanDigits.slice(1)}`);
+      }
+
       const [phoneMatch, emailMatch] = await Promise.all([
-        db.user.findUnique({
-          where: { phoneNumber: input.phoneNumber },
+        db.user.findFirst({
+          where: { phoneNumber: { in: Array.from(candidates) } },
           select: { id: true },
         }),
         input.email
@@ -153,8 +165,22 @@ export function createPrismaAuthRepository(db: PrismaClient): AuthRepository {
     },
 
     async findUserByPhoneForLogin(phoneNumber) {
-      return db.user.findUnique({
-        where: { phoneNumber },
+      const cleanDigits = phoneNumber.replace(/\D/g, "");
+      const candidates = new Set<string>([phoneNumber]);
+      if (cleanDigits.startsWith("234") && cleanDigits.length === 13) {
+        candidates.add(`+${cleanDigits}`);
+        candidates.add(`0${cleanDigits.slice(3)}`);
+        candidates.add(cleanDigits);
+      } else if (cleanDigits.startsWith("0") && cleanDigits.length === 11) {
+        candidates.add(cleanDigits);
+        candidates.add(`+234${cleanDigits.slice(1)}`);
+        candidates.add(`234${cleanDigits.slice(1)}`);
+      }
+
+      return db.user.findFirst({
+        where: {
+          phoneNumber: { in: Array.from(candidates) },
+        },
         select: {
           id: true,
           fullName: true,

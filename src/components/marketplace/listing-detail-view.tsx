@@ -19,6 +19,7 @@ import { LowDataImage } from "@/components/ui/low-data-image";
 import type { ProduceListingSummary } from "@/modules/marketplace";
 import { PRODUCE_CROP_CATALOG } from "@/modules/i18n/catalogs";
 import { CreateOfferDialog } from "@/components/orders/create-offer-dialog";
+import { getCropVisual } from "@/lib/crop-visuals";
 
 export interface ListingDetailViewProps {
   listing: ProduceListingSummary;
@@ -81,12 +82,21 @@ export function ListingDetailView({
                 imgClassName="w-full h-full object-cover"
               />
             ) : (
-              <div className="flex flex-col items-center justify-center gap-2 text-gray-500">
-                <Tag className="h-10 w-10 text-gray-400" />
-                <span className="text-sm font-semibold uppercase">
-                  {listing.cropCode}
-                </span>
-              </div>
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={getCropVisual(listing.cropCode).localPath}
+                alt={listing.title}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  const visual = getCropVisual(listing.cropCode);
+                  if (target.src.endsWith(".jpg") || target.src.endsWith(".png")) {
+                    target.src = visual.remoteFallback;
+                  } else {
+                    target.src = visual.svgFallback;
+                  }
+                }}
+              />
             )}
 
             {/* Quality Grade Overlay */}

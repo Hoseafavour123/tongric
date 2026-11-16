@@ -217,7 +217,56 @@ export interface OrderDetailSummary extends OrderSummary {
   listingCommunity?: string;
   farmerAddress?: string;
   cancellationReason?: string | null;
+  transporterId?: string | null;
+  transporterName?: string | null;
+  transporterPhone?: string | null;
+  corridorRoute?: string | null;
+  estimatedFreightFee?: number | null;
+  waybillNumber?: string | null;
+  pickupPin?: string | null;
+  deliveryPin?: string | null;
+  pickupVerifiedAt?: string | null;
+  deliveryVerifiedAt?: string | null;
   statusEvents: OrderStatusEventSummary[];
+}
+
+export const verifyPickupPinSchema = z.object({
+  pin: z.string().trim().length(4, "Pickup PIN must be exactly 4 digits"),
+});
+
+export type VerifyPickupPinInput = z.infer<typeof verifyPickupPinSchema>;
+
+export const verifyDeliveryPinSchema = z.object({
+  pin: z.string().trim().length(4, "Delivery PIN must be exactly 4 digits"),
+});
+
+export type VerifyDeliveryPinInput = z.infer<typeof verifyDeliveryPinSchema>;
+
+export interface WaybillSummary {
+  waybillNumber: string;
+  orderId: string;
+  orderCode: string;
+  cropCode: string;
+  quantity: number;
+  unitCode: string;
+  estimatedWeightKg: number;
+  totalAmount: number;
+  currency: string;
+  corridorRoute: string | null;
+  estimatedFreightFee: number | null;
+  pickupLga: string;
+  pickupCommunity: string | null;
+  destinationLocation: string | null;
+  farmerName: string;
+  farmerPhone: string;
+  buyerName: string;
+  buyerPhone: string;
+  transporterName: string | null;
+  transporterPhone: string | null;
+  status: OrderStatus;
+  pickupVerifiedAt: string | null;
+  deliveryVerifiedAt: string | null;
+  createdAt: string;
 }
 
 export const updateOrderStatusSchema = z.object({

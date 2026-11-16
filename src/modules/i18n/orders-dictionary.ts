@@ -216,5 +216,317 @@ export const ORDERS_TRANSLATIONS = {
     description: "Explanation when no orders exist",
     defaultText: "When an offer is accepted by both parties, it will appear here as a confirmed order contract.",
   },
+
+  /* ------------------------------------------------------------------------ */
+  /* Order Milestone, Cancellation & Dispute Actions                          */
+  /* ------------------------------------------------------------------------ */
+  "orders.action.markCollected": {
+    namespace: "orders",
+    description: "Button to mark produce collected from farm gate",
+    defaultText: "Confirm Produce Collected",
+  },
+  "orders.action.markInTransit": {
+    namespace: "orders",
+    description: "Button to mark order in transit to destination",
+    defaultText: "Mark In Transit",
+  },
+  "orders.action.markDelivered": {
+    namespace: "orders",
+    description: "Button to mark order delivered at destination",
+    defaultText: "Mark Delivered",
+  },
+  "orders.action.confirmCompleted": {
+    namespace: "orders",
+    description: "Button for buyer to confirm receipt and complete order",
+    defaultText: "Confirm Receipt & Complete Order",
+  },
+  "orders.action.cancelOrder": {
+    namespace: "orders",
+    description: "Button to initiate pre-collection order cancellation",
+    defaultText: "Cancel Order",
+  },
+  "orders.action.reportDispute": {
+    namespace: "orders",
+    description: "Button to report a dispute on an active order",
+    defaultText: "Report Dispute",
+  },
+  "orders.cancel.title": {
+    namespace: "orders",
+    description: "Title on cancellation modal",
+    defaultText: "Cancel Order (Pre-Collection)",
+  },
+  "orders.cancel.prompt": {
+    namespace: "orders",
+    description: "Instructions for order cancellation",
+    defaultText: "Pre-collection cancellation releases both parties and automatically restores inventory back to the active listing.",
+  },
+  "orders.cancel.reasonPlaceholder": {
+    namespace: "orders",
+    description: "Placeholder for cancellation reason text input",
+    defaultText: "Explain reason for cancellation (e.g. transport unavailable, inspection discrepancy)...",
+  },
+  "orders.cancel.confirmButton": {
+    namespace: "orders",
+    description: "Submit cancellation button",
+    defaultText: "Confirm Cancellation",
+  },
+  "orders.dispute.title": {
+    namespace: "orders",
+    description: "Title on dispute modal",
+    defaultText: "Report Order Dispute",
+  },
+  "orders.dispute.prompt": {
+    namespace: "orders",
+    description: "Instructions for reporting dispute",
+    defaultText: "Flag this transaction for admin mediation. An operator will review the details and contact both parties.",
+  },
+  "orders.dispute.reasonPlaceholder": {
+    namespace: "orders",
+    description: "Placeholder for dispute reason text input",
+    defaultText: "Describe the issue or disagreement in detail...",
+  },
+  "orders.dispute.confirmButton": {
+    namespace: "orders",
+    description: "Submit dispute button",
+    defaultText: "Submit Dispute to Support",
+  },
+  "orders.status.collected": {
+    namespace: "orders",
+    description: "Badge for collected produce state",
+    defaultText: "Collected",
+  },
+  "orders.status.inTransit": {
+    namespace: "orders",
+    description: "Badge for in transit state",
+    defaultText: "In Transit",
+  },
+  "orders.status.delivered": {
+    namespace: "orders",
+    description: "Badge for delivered produce state",
+    defaultText: "Delivered",
+  },
+  "orders.status.completed": {
+    namespace: "orders",
+    description: "Badge for completed order state",
+    defaultText: "Completed",
+  },
+  "orders.status.cancelled": {
+    namespace: "orders",
+    description: "Badge for cancelled order state",
+    defaultText: "Cancelled",
+  },
+  "orders.status.disputed": {
+    namespace: "orders",
+    description: "Badge for disputed order state",
+    defaultText: "In Dispute",
+  },
+
+  /* ------------------------------------------------------------------------ */
+  /* Transport Hub, Corridors & Carrier Haulage Entries                       */
+  /* ------------------------------------------------------------------------ */
+  "transport.hub.title": {
+    namespace: "transport",
+    description: "Heading on logistics and corridors hub",
+    defaultText: "Agricultural Logistics & Transport",
+  },
+  "transport.hub.subtitle": {
+    namespace: "transport",
+    description: "Subtitle explaining Benue transport corridors and carrier matching",
+    defaultText: "Coordinated farm-gate produce pickup and delivery across Benue State agricultural corridors.",
+  },
+  "transport.action.claim": {
+    namespace: "transport",
+    description: "Button for transporter to claim haulage load",
+    defaultText: "Claim Haulage Load",
+  },
+  "transport.tab.available": {
+    namespace: "transport",
+    description: "Tab label for open cargo loads",
+    defaultText: "Open Cargo Requests",
+  },
+  "transport.tab.myHaulage": {
+    namespace: "transport",
+    description: "Tab label for assigned carrier loads",
+    defaultText: "My Active Haulage",
+  },
+  "transport.tab.corridors": {
+    namespace: "transport",
+    description: "Tab label for corridor rate matrix",
+    defaultText: "Corridor Rate Card",
+  },
+  "transport.tab.carriers": {
+    namespace: "transport",
+    description: "Tab label for verified carriers directory",
+    defaultText: "Verified Carriers",
+  },
+
+  /* ------------------------------------------------------------------------ */
+  /* Dispatch Waybill & Handover Verification Entries                         */
+  /* ------------------------------------------------------------------------ */
+  "orders.handover.title": {
+    namespace: "orders",
+    description: "Heading for handover verification section",
+    defaultText: "Handover & Dispatch Authentication",
+  },
+  "orders.handover.farmerPickupPin": {
+    namespace: "orders",
+    description: "Label for farmer pickup PIN display",
+    defaultText: "Farm-Gate Pickup PIN",
+  },
+  "orders.handover.farmerPickupDesc": {
+    namespace: "orders",
+    description: "Instruction for farmer to provide pickup PIN to driver",
+    defaultText: "Provide this 4-digit code to the driver upon produce inspection and loading at your farm gate.",
+  },
+  "orders.handover.buyerDeliveryPin": {
+    namespace: "orders",
+    description: "Label for buyer delivery PIN display",
+    defaultText: "Buyer Delivery PIN",
+  },
+  "orders.handover.buyerDeliveryDesc": {
+    namespace: "orders",
+    description: "Instruction for buyer to provide delivery PIN to driver",
+    defaultText: "Provide this 4-digit code to the driver upon produce arrival and dropoff verification.",
+  },
+  "orders.handover.pickupVerified": {
+    namespace: "orders",
+    description: "Badge when farm-gate pickup is verified",
+    defaultText: "Farm-Gate Pickup Authenticated",
+  },
+  "orders.handover.deliveryVerified": {
+    namespace: "orders",
+    description: "Badge when delivery handover is verified",
+    defaultText: "Dropoff Delivery Authenticated",
+  },
+  "orders.handover.verifyPickupBtn": {
+    namespace: "orders",
+    description: "Button for transporter to verify farm gate collection",
+    defaultText: "Verify Farm-Gate Pickup",
+  },
+  "orders.handover.verifyDeliveryBtn": {
+    namespace: "orders",
+    description: "Button for transporter to verify delivery handover",
+    defaultText: "Verify Delivery Handover",
+  },
+  "orders.handover.waybillBtn": {
+    namespace: "orders",
+    description: "Button to view and print official dispatch waybill",
+    defaultText: "View & Print Dispatch Waybill",
+  },
+  "orders.waybill.title": {
+    namespace: "orders",
+    description: "Heading on official dispatch waybill",
+    defaultText: "Tongric Agricultural Dispatch Waybill",
+  },
+  "orders.waybill.number": {
+    namespace: "orders",
+    description: "Label for waybill number",
+    defaultText: "Waybill No.",
+  },
+  "orders.waybill.consignor": {
+    namespace: "orders",
+    description: "Consignor section header",
+    defaultText: "Consignor (Originating Farmer)",
+  },
+  "orders.waybill.consignee": {
+    namespace: "orders",
+    description: "Consignee section header",
+    defaultText: "Consignee (Receiving Buyer)",
+  },
+  "orders.waybill.carrier": {
+    namespace: "orders",
+    description: "Carrier section header",
+    defaultText: "Authorized Logistics Carrier",
+  },
+  "orders.waybill.manifest": {
+    namespace: "orders",
+    description: "Produce cargo manifest header",
+    defaultText: "Cargo Manifest & Produce Lot",
+  },
+  "orders.waybill.disclosure": {
+    namespace: "orders",
+    description: "Section 19 direct settlement notice",
+    defaultText: "Section 19 Platform Notice: Agricultural commerce on Tongric is executed via direct financial settlement between Buyer and Farmer. Tongric provides non-custodial logistics matching, digital waybill manifests, and dual cryptographic PIN authentication without holding user funds.",
+  },
+  "orders.waybill.print": {
+    namespace: "orders",
+    description: "Print waybill button",
+    defaultText: "Print / Save Waybill Document",
+  },
+  "orders.reviews.rateCarrierButton": {
+    namespace: "orders",
+    description: "Button to open review dialog for carrier",
+    defaultText: "Rate Transporter Haulage",
+  },
+  "orders.reviews.carrierReviewed": {
+    namespace: "orders",
+    description: "Badge indicating carrier was already rated",
+    defaultText: "Transporter Rated",
+  },
+  "orders.reviews.modalTitle": {
+    namespace: "orders",
+    description: "Title of carrier review modal",
+    defaultText: "Rate Transporter Service",
+  },
+  "orders.reviews.modalDesc": {
+    namespace: "orders",
+    description: "Description of carrier review modal",
+    defaultText: "Provide verified feedback on transit timeliness, cargo handling, and communication for this corridor haulage.",
+  },
+  "orders.reviews.overallRatingLabel": {
+    namespace: "orders",
+    description: "Label for overall star rating",
+    defaultText: "Overall Carrier Rating",
+  },
+  "orders.reviews.timelinessLabel": {
+    namespace: "orders",
+    description: "Label for timeliness badge score",
+    defaultText: "Timeliness & Punctual Arrival",
+  },
+  "orders.reviews.cargoCareLabel": {
+    namespace: "orders",
+    description: "Label for cargo care badge score",
+    defaultText: "Cargo Care & Packaging Preservation",
+  },
+  "orders.reviews.communicationLabel": {
+    namespace: "orders",
+    description: "Label for communication badge score",
+    defaultText: "Polite & Clear Corridor Updates",
+  },
+  "orders.reviews.remarksLabel": {
+    namespace: "orders",
+    description: "Label for optional remarks textarea",
+    defaultText: "Review Remarks (Optional)",
+  },
+  "orders.reviews.remarksPlaceholder": {
+    namespace: "orders",
+    description: "Placeholder for review remarks",
+    defaultText: "Share your experience regarding loading, transit care, or offloading coordination...",
+  },
+  "orders.reviews.submit": {
+    namespace: "orders",
+    description: "Submit review button",
+    defaultText: "Submit Carrier Review",
+  },
+  "orders.reviews.submitting": {
+    namespace: "orders",
+    description: "Submitting review button state",
+    defaultText: "Submitting Review...",
+  },
+  "orders.reviews.successMessage": {
+    namespace: "orders",
+    description: "Success message after submitting carrier review",
+    defaultText: "Carrier review submitted successfully. Thank you for building trust in Benue agricultural logistics!",
+  },
+  "orders.reviews.viewReviews": {
+    namespace: "orders",
+    description: "Label for viewing transporter reviews",
+    defaultText: "Carrier Reviews",
+  },
+  "orders.reviews.noReviews": {
+    namespace: "orders",
+    description: "Label when no carrier reviews exist yet",
+    defaultText: "New Transporter • No reviews yet",
+  },
 } as const;
 

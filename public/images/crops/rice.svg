@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <rect width="400" height="300" fill="#f1f5f9" />
+  <g transform="translate(110, 60)">
+    <!-- Rice Sacks / Bowl -->
+    <ellipse cx="90" cy="110" rx="75" ry="40" fill="#cbd5e1" />
+    <path d="M25,100 Q90,70 155,100 L150,130 Q90,150 30,130 Z" fill="#e2e8f0" />
+    <!-- Golden grain stalks -->
+    <path d="M90,100 Q60,40 40,15" stroke="#ca8a04" stroke-width="3" fill="none" />
+    <ellipse cx="45" cy="22" rx="4" ry="9" fill="#facc15" transform="rotate(-30 45 22)" />
+    <ellipse cx="55" cy="35" rx="4" ry="9" fill="#facc15" transform="rotate(-25 55 35)" />
+    <ellipse cx="65" cy="50" rx="4" ry="9" fill="#facc15" transform="rotate(-20 65 50)" />
+    
+    <path d="M95,100 Q120,40 140,15" stroke="#ca8a04" stroke-width="3" fill="none" />
+    <ellipse cx="135" cy="22" rx="4" ry="9" fill="#facc15" transform="rotate(30 135 22)" />
+    <ellipse cx="125" cy="35" rx="4" ry="9" fill="#facc15" transform="rotate(25 125 35)" />
+    <ellipse cx="115" cy="50" rx="4" ry="9" fill="#facc15" transform="rotate(20 115 50)" />
+  </g>
+  <rect x="20" y="235" width="360" height="45" rx="8" fill="#ffffff" fill-opacity="0.9" />
+  <text x="200" y="263" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#334155" text-anchor="middle">Milled &amp; Paddy Rice (50kg Bags)</text>
+</svg>
+

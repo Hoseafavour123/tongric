@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <rect width="400" height="300" fill="#ecfccb" />
+  <g transform="translate(100, 60)">
+    <!-- Soya Pods -->
+    <path d="M20,60 C40,20 120,30 160,80 C130,95 60,95 20,60 Z" fill="#65a30d" />
+    <circle cx="50" cy="55" r="16" fill="#84cc16" />
+    <circle cx="90" cy="60" r="16" fill="#84cc16" />
+    <circle cx="130" cy="70" r="16" fill="#84cc16" />
+    <!-- Soya Grains Bowl -->
+    <ellipse cx="100" cy="120" rx="75" ry="35" fill="#ca8a04" opacity="0.3" />
+    <circle cx="70" cy="115" r="11" fill="#fef08a" stroke="#ca8a04" stroke-width="2" />
+    <circle cx="95" cy="112" r="11" fill="#fde047" stroke="#ca8a04" stroke-width="2" />
+    <circle cx="120" cy="118" r="11" fill="#fef08a" stroke="#ca8a04" stroke-width="2" />
+    <circle cx="85" cy="125" r="11" fill="#fef08a" stroke="#ca8a04" stroke-width="2" />
+    <circle cx="110" cy="128" r="11" fill="#fde047" stroke="#ca8a04" stroke-width="2" />
+  </g>
+  <rect x="20" y="235" width="360" height="45" rx="8" fill="#ffffff" fill-opacity="0.9" />
+  <text x="200" y="263" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#3f6212" text-anchor="middle">Soybeans (100kg Sacks)</text>
+</svg>
+
