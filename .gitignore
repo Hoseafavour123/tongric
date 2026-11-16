@@ -12,7 +12,6 @@ next-env.d.ts
 /coverage
 
 # Environment
-.env
 .env*.local
 
 # Logs & OS

@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { NextResponse } from "next/server";
 import { handleApiError } from "@/lib/api-response";
@@ -30,7 +31,13 @@ export async function GET(_request: Request, { params }: RouteParams) {
     }
 
     // Otherwise stream from local storage directory
-    const root = path.resolve(process.cwd(), ".tongric-local-storage");
+    const isServerless =
+      Boolean(process.env.VERCEL) ||
+      Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME) ||
+      process.env.NODE_ENV === "production";
+    const root = isServerless
+      ? path.resolve(os.tmpdir(), ".tongric-local-storage")
+      : path.resolve(process.cwd(), ".tongric-local-storage");
     const resolvedPath = path.resolve(root, doc.fileStoragePath);
 
     if (!resolvedPath.startsWith(`${root}${path.sep}`) && resolvedPath !== root) {

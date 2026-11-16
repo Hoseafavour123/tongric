@@ -38,6 +38,13 @@ export interface CreateListingViewProps {
   onListingCreated?: (listing: ProduceListingSummary) => void;
 }
 
+interface PhotoItem extends ListingPhotoInput {
+  id: string;
+  previewUrl: string;
+  isUploading?: boolean;
+  uploadError?: string | null;
+}
+
 export function CreateListingView({
   defaultLga = "",
   defaultCommunity = "",
@@ -59,7 +66,7 @@ export function CreateListingView({
   const [community, setCommunity] = useState(defaultCommunity);
   const [description, setDescription] = useState("");
 
-  const [photos, setPhotos] = useState<ListingPhotoInput[]>([]);
+  const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [isCompressingPhoto, setIsCompressingPhoto] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -86,6 +93,27 @@ export function CreateListingView({
     }
 
     setErrorMessage(null);
+
+    // Create immediate local preview URL
+    const localPreviewUrl =
+      typeof URL !== "undefined" && typeof URL.createObjectURL === "function"
+        ? URL.createObjectURL(file)
+        : "";
+    const photoId = `photo-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+
+    const newPhotoItem: PhotoItem = {
+      id: photoId,
+      previewUrl: localPreviewUrl,
+      fileStoragePath: "",
+      publicUrl: localPreviewUrl,
+      mimeType: file.type || "image/jpeg",
+      sizeBytes: file.size,
+      isPrimary: photos.length === 0,
+      isUploading: true,
+      uploadError: null,
+    };
+
+    setPhotos((prev) => [...prev, newPhotoItem]);
     setIsCompressingPhoto(true);
 
     try {
@@ -109,20 +137,37 @@ export function CreateListingView({
         throw new Error(response.error.message || "Failed to upload photo.");
       }
 
-      const uploadedPhoto: ListingPhotoInput = {
-        fileStoragePath: response.data.photo.fileStoragePath,
-        publicUrl: response.data.photo.publicUrl,
-        mimeType: response.data.photo.mimeType,
-        sizeBytes: response.data.photo.sizeBytes,
-        isPrimary: photos.length === 0,
-      };
-
-      setPhotos((prev) => [...prev, uploadedPhoto]);
+      setPhotos((prev) =>
+        prev.map((item) =>
+          item.id === photoId
+            ? {
+                ...item,
+                fileStoragePath: response.data.photo.fileStoragePath,
+                publicUrl: response.data.photo.publicUrl,
+                mimeType: response.data.photo.mimeType,
+                sizeBytes: response.data.photo.sizeBytes,
+                isUploading: false,
+                uploadError: null,
+              }
+            : item,
+        ),
+      );
     } catch (err) {
-      setErrorMessage(
+      const msg =
         err instanceof Error
           ? err.message
-          : "Photo upload failed. Please try again.",
+          : "Photo upload failed. Please try again.";
+      setErrorMessage(msg);
+      setPhotos((prev) =>
+        prev.map((item) =>
+          item.id === photoId
+            ? {
+                ...item,
+                isUploading: false,
+                uploadError: msg,
+              }
+            : item,
+        ),
       );
     } finally {
       setIsCompressingPhoto(false);
@@ -132,9 +177,17 @@ export function CreateListingView({
 
   function handleRemovePhoto(indexToRemove: number) {
     setPhotos((prev) => {
+      const itemToRemove = prev[indexToRemove];
+      if (itemToRemove?.previewUrl && itemToRemove.previewUrl.startsWith("blob:")) {
+        try {
+          URL.revokeObjectURL(itemToRemove.previewUrl);
+        } catch {
+          // ignore revocation error
+        }
+      }
       const filtered = prev.filter((_, idx) => idx !== indexToRemove);
       if (filtered.length > 0 && !filtered.some((p) => p.isPrimary)) {
-        const first = filtered[0];
+        const first = filtered.find((p) => !p.uploadError) || filtered[0];
         if (first) {
           first.isPrimary = true;
         }
@@ -200,6 +253,25 @@ export function CreateListingView({
       return;
     }
 
+    if (photos.some((p) => p.isUploading)) {
+      setErrorMessage("Please wait for your photo to finish uploading before publishing.");
+      return;
+    }
+
+    const validPhotos: ListingPhotoInput[] = photos
+      .filter((p) => !p.uploadError && Boolean(p.fileStoragePath))
+      .map(({ fileStoragePath, publicUrl, mimeType, sizeBytes, isPrimary }) => ({
+        fileStoragePath,
+        publicUrl,
+        mimeType,
+        sizeBytes,
+        isPrimary: Boolean(isPrimary),
+      }));
+
+    if (validPhotos.length > 0 && !validPhotos.some((p) => p.isPrimary)) {
+      validPhotos[0]!.isPrimary = true;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -218,7 +290,7 @@ export function CreateListingView({
         lga,
         community: community.trim(),
         description: description.trim() || null,
-        photos,
+        photos: validPhotos,
       };
 
       const res = await resilientFetch<{ listing: ProduceListingSummary }>(
@@ -731,15 +803,30 @@ export function CreateListingView({
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {photos.map((photo, idx) => (
                     <div
-                      key={photo.fileStoragePath}
+                      key={photo.id}
                       className="relative rounded-lg border border-gray-200 overflow-hidden bg-gray-50 flex flex-col"
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={photo.publicUrl}
-                        alt={`Produce photo ${idx + 1}`}
-                        className="h-28 w-full object-cover"
-                      />
+                      <div className="relative h-28 w-full bg-gray-100">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={photo.previewUrl || photo.publicUrl}
+                          alt={`Produce photo ${idx + 1}`}
+                          className="h-28 w-full object-cover"
+                        />
+                        {photo.isUploading && (
+                          <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-1.5 text-white text-xs font-semibold">
+                            <Loader2 className="h-5 w-5 animate-spin text-white" />
+                            <span>Uploading...</span>
+                          </div>
+                        )}
+                        {photo.uploadError && (
+                          <div className="absolute inset-0 bg-red-950/80 flex flex-col items-center justify-center p-2 text-center text-white text-xs font-medium">
+                            <span className="text-red-200 text-[11px] font-semibold line-clamp-2">
+                              {photo.uploadError}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                       <div className="p-2 bg-white flex items-center justify-between gap-1 border-t border-gray-100">
                         {photo.isPrimary ? (
                           <Badge tone="green" className="text-xs">
@@ -748,8 +835,9 @@ export function CreateListingView({
                         ) : (
                           <button
                             type="button"
+                            disabled={photo.isUploading || Boolean(photo.uploadError)}
                             onClick={() => handleSetPrimaryPhoto(idx)}
-                            className="text-xs text-gray-600 hover:text-green-800 underline min-h-[32px] px-1"
+                            className="text-xs text-gray-600 hover:text-green-800 underline min-h-[32px] px-1 disabled:opacity-40 disabled:no-underline cursor-pointer"
                           >
                             Set Main
                           </button>

@@ -1,4 +1,5 @@
 import "server-only";
+import os from "node:os";
 import path from "node:path";
 import { getEnv } from "@/lib/env";
 import { isCloudinaryConfigured } from "@/lib/env-schema";
@@ -8,6 +9,19 @@ import type { StorageProvider } from "./types";
 
 let cachedProvider: StorageProvider | null = null;
 let warnedLocalFallback = false;
+
+function resolveStorageRoot(): string {
+  // In serverless environments (Vercel, AWS Lambda), process.cwd() is read-only (/var/task).
+  // Use os.tmpdir() to prevent filesystem errors (ENOENT/EROFS).
+  const isServerless =
+    Boolean(process.env.VERCEL) ||
+    Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME) ||
+    process.env.NODE_ENV === "production";
+
+  return isServerless
+    ? path.join(os.tmpdir(), ".tongric-local-storage")
+    : path.join(process.cwd(), ".tongric-local-storage");
+}
 
 /**
  * Returns the active StorageProvider (Cloudinary when credentials exist in .env,
@@ -19,9 +33,7 @@ export function getStorageProvider(): StorageProvider {
   }
 
   const env = getEnv();
-  const localProvider = createLocalStorageProvider(
-    path.join(process.cwd(), ".tongric-local-storage"),
-  );
+  const localProvider = createLocalStorageProvider(resolveStorageRoot());
 
   if (
     isCloudinaryConfigured(env) &&

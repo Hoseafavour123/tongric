@@ -64,6 +64,24 @@ export function VerificationSubmissionView({
     initialDocument?.documentNumber ?? "",
   );
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedPreviewUrl, setSelectedPreviewUrl] = useState<string | null>(null);
+
+  function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0] ?? null;
+    setSelectedFile(file);
+    if (selectedPreviewUrl && selectedPreviewUrl.startsWith("blob:")) {
+      try {
+        URL.revokeObjectURL(selectedPreviewUrl);
+      } catch {
+        // ignore
+      }
+    }
+    if (file && file.type.startsWith("image/") && typeof URL !== "undefined") {
+      setSelectedPreviewUrl(URL.createObjectURL(file));
+    } else {
+      setSelectedPreviewUrl(null);
+    }
+  }
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -118,6 +136,12 @@ export function VerificationSubmissionView({
         setStatus("PENDING");
         setSuccessMessage(t("profile.verify.submittedSuccess"));
         setSelectedFile(null);
+        if (selectedPreviewUrl && selectedPreviewUrl.startsWith("blob:")) {
+          try {
+            URL.revokeObjectURL(selectedPreviewUrl);
+          } catch {}
+        }
+        setSelectedPreviewUrl(null);
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
         }
@@ -321,18 +345,28 @@ export function VerificationSubmissionView({
                   id="verify-file-input"
                   type="file"
                   accept="image/jpeg,image/png,image/webp,application/pdf"
-                  onChange={(e) =>
-                    setSelectedFile(e.target.files?.[0] ?? null)
-                  }
+                  onChange={handleFileSelected}
                   className="block w-full text-sm text-gray-700 file:mr-4 file:min-h-[44px] file:rounded-md file:border-0 file:bg-emerald-50 file:px-4 file:py-2.5 file:text-sm file:font-semibold file:text-emerald-800 hover:file:bg-emerald-100 cursor-pointer"
                   required
                 />
               </div>
 
               {selectedFile && (
-                <p className="text-xs text-emerald-800 font-medium">
-                  Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)
-                </p>
+                <div className="space-y-2 pt-1">
+                  <p className="text-xs text-emerald-800 font-medium">
+                    Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)
+                  </p>
+                  {selectedPreviewUrl && (
+                    <div className="relative h-28 w-28 rounded-md border border-gray-200 overflow-hidden bg-gray-50">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={selectedPreviewUrl}
+                        alt="Selected document preview"
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 
