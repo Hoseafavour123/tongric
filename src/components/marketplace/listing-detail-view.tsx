@@ -87,15 +87,6 @@ export function ListingDetailView({
                 src={getCropVisual(listing.cropCode).localPath}
                 alt={listing.title}
                 className="w-full h-full object-cover"
-                onError={(e) => {
-                  const target = e.currentTarget;
-                  const visual = getCropVisual(listing.cropCode);
-                  if (target.src.endsWith(".jpg") || target.src.endsWith(".png")) {
-                    target.src = visual.remoteFallback;
-                  } else {
-                    target.src = visual.svgFallback;
-                  }
-                }}
               />
             )}
 

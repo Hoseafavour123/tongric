@@ -196,15 +196,6 @@ export default async function MarketPage({ searchParams }: MarketPageProps) {
                           alt={item.title}
                           loading="lazy"
                           className="h-full w-full object-cover group-hover:scale-102 transition-transform duration-200"
-                          onError={(e) => {
-                            const target = e.currentTarget;
-                            const visual = getCropVisual(item.cropCode);
-                            if (target.src.endsWith(".jpg") || target.src.endsWith(".png")) {
-                              target.src = visual.remoteFallback;
-                            } else {
-                              target.src = visual.svgFallback;
-                            }
-                          }}
                         />
                       )}
                     </div>
