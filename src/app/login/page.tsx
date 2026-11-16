@@ -7,12 +7,13 @@ export const metadata: Metadata = {
 };
 
 interface LoginPageProps {
-  searchParams?: Promise<{ redirect?: string }>;
+  searchParams?: Promise<{ redirect?: string; returnUrl?: string; next?: string }>;
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const resolvedParams = searchParams ? await searchParams : undefined;
-  const redirectPath = resolvedParams?.redirect || "/";
+  const redirectPath =
+    resolvedParams?.redirect || resolvedParams?.returnUrl || resolvedParams?.next || "/";
 
   return <LoginFormView redirectPath={redirectPath} />;
 }

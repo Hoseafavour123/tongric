@@ -60,6 +60,8 @@ export {
 
 export type {
   ActiveSessionUser,
+  AuthRepository,
+  CreateRegisteredUserParams,
   SessionRecord,
   UserForLogin,
 } from "./auth-repo";

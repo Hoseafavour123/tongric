@@ -31,6 +31,21 @@ interface LoginResponseData {
   };
 }
 
+export function getDefaultRoleRedirect(role?: string): string {
+  switch (role) {
+    case "ADMIN":
+      return "/admin";
+    case "FARMER":
+      return "/market";
+    case "BUYER":
+      return "/market";
+    case "TRANSPORT_PROVIDER":
+      return "/transport";
+    default:
+      return "/";
+  }
+}
+
 export function LoginFormView({ redirectPath = "/" }: { redirectPath?: string }) {
   const { t, setLocale } = useI18n();
   const router = useRouter();
@@ -82,10 +97,17 @@ export function LoginFormView({ redirectPath = "/" }: { redirectPath?: string })
         await setLocale(result.data.user.preferredLanguageCode);
       }
 
-      const safeRedirect = redirectPath.startsWith("/") && !redirectPath.startsWith("//")
+      const hasExplicitRedirect =
+        Boolean(redirectPath) &&
+        redirectPath.startsWith("/") &&
+        !redirectPath.startsWith("//") &&
+        redirectPath !== "/";
+
+      const destination = hasExplicitRedirect
         ? redirectPath
-        : "/";
-      router.push(safeRedirect);
+        : getDefaultRoleRedirect(result.data.user.role);
+
+      router.push(destination);
       router.refresh();
     } finally {
       setIsSubmitting(false);
